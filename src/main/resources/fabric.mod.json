@@ -1,0 +1,44 @@
+{
+	"schemaVersion": 1,
+	"id": "elytraassistant",
+	"version": "${version}",
+	"name": "Elytra Assistant",
+	"description": "Automatically swaps to Elytra/Chestplate when taking off or landing + other small Elytra-related things",
+	"authors": [
+		"Xurify"
+	],
+	"contact": {
+		"homepage": "https://xurify.com/projects/minecraft/elytra-assistant",
+		"sources": "https://github.com/Xurify/ElytraAssistant"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/elytraassistant/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "com.xurify.elytraassistant.ElytraAssistant"
+		],
+		"client": [
+			"com.xurify.elytraassistant.ElytraAssistantClient"
+		],
+		"modmenu": [
+			"com.xurify.elytraassistant.ModMenuIntegration"
+		]
+	},
+	"mixins": [
+		"elytraassistant.mixins.json",
+		{
+			"config": "elytraassistant.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.14.21",
+		"minecraft": "~1.21",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": ">=7.2.2"
+	}
+}

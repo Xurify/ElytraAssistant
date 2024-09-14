@@ -1,0 +1,32 @@
+{
+  "category.elytraassistant.general": "Elytra Assistant",
+  "key.elytraassistant.elytra_toggle": "Toggle Elytra/Chestplate",
+  "text.autoconfig.elytraassistant.title": "Elytra Assistant Configuration",
+
+  "text.autoconfig.elytraassistant.option.generalSettings": "General Settings",
+  "text.autoconfig.elytraassistant.option.generalSettings.preventFireworkGroundPlacement": "Prevent Wasted Firework Rockets",
+  "text.autoconfig.elytraassistant.option.generalSettings.preventFireworkGroundPlacement.@Tooltip": "Prevent using firework rockets on the ground while wearing Elytra",
+
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings": "Elytra Activation Settings",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.autoElytraEnabled": "Auto Elytra Enabled",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.autoElytraEnabled.@Tooltip": "Automatically enable Elytra/Chestplate when taking off or landing",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.verticalVelocityThreshold": "Vertical Velocity Threshold",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.verticalVelocityThreshold.@Tooltip": "Vertical velocity threshold for Elytra activation (lower is more sensitive)",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.upwardVelocityThreshold": "Upward Velocity Threshold",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.upwardVelocityThreshold.@Tooltip": "Upward velocity threshold for Elytra activation (higher is less sensitive)",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.airTicksThreshold": "Air Ticks Threshold",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.airTicksThreshold.@Tooltip": "Number of ticks in air before Elytra can activate",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.minFallDistance": "Minimum Fall Distance",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.minFallDistance.@Tooltip": "Minimum fall distance for Elytra activation",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.midAirActivationThreshold": "Mid-air Activation Threshold",
+  "text.autoconfig.elytraassistant.option.elytraActivationSettings.midAirActivationThreshold.@Tooltip": "Minimum number of ticks in air before mid-air Elytra activation is allowed",
+
+  "text.autoconfig.elytraassistant.option.displaySettings": "Display Settings",
+  "text.autoconfig.elytraassistant.option.displaySettings.showFlightTime": "Show Estimated Flight Time",
+  "text.autoconfig.elytraassistant.option.displaySettings.showFlightTime.@Tooltip": "Displays estimated flight time in the Elytra tooltip",
+
+  "text.autoconfig.elytraassistant.option.debugSettings": "Debug Settings",
+  "text.autoconfig.elytraassistant.option.debugSettings.enableLogs": "Enable debug logs",
+
+  "elytraassistant.tooltip.flightTime": "Est. Flight Time: %s"
+}
