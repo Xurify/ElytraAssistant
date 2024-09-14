@@ -1,6 +1,8 @@
 # Elytra Assistant
 
-Elytra Assistant is a client-side Minecraft mod that enhances the Elytra flying experience with useful features and quality-of-life improvements.
+Elytra Assistant is a client-side Minecraft mod that elevates your Elytra flying experience with intelligent activation/swapping, 
+flight time estimation, and quality-of-life improvements. Enhance your aerial adventures and optimize 
+your resources with smart, seamless controls.
 
 ## Features
 
