@@ -257,8 +257,10 @@ public class ElytraSwap {
     private static void activateElytra(MinecraftClient client) {
         Optional.ofNullable(client.player).ifPresent(player -> {
             try {
-                client.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
-                player.startFallFlying();
+                if (client.getNetworkHandler() != null) {
+                    client.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
+                    player.startFallFlying();
+                }
             } catch (NullPointerException exception) {
                 logError("Error activating Elytra", exception, ElytraAssistant.CONFIG.debugSettings.enableLogs);
             }
@@ -338,6 +340,15 @@ public class ElytraSwap {
         PlayerState(MinecraftClient client) {
             this.client = client;
             this.player = client.player;
+
+            if (player == null) {
+                throw new IllegalStateException("Player is null");
+            }
+
+            if (client.world == null) {
+                throw new IllegalStateException("World is null");
+            }
+
             this.isOnGround = player.isOnGround();
             this.isInFluid = player.isInFluid() || player.isTouchingWater() || player.isSubmergedInWater();
             this.isSubmergedInWater = player.isSubmergedInWater();
@@ -350,7 +361,7 @@ public class ElytraSwap {
             this.isInMidAirBalance = Math.abs(player.getVelocity().y) <= ElytraAssistant.CONFIG.elytraActivationSettings.verticalVelocityThreshold / 1000.0;
             this.isMovingDown = player.getVelocity().y < -ElytraAssistant.CONFIG.elytraActivationSettings.verticalVelocityThreshold / 1000.0;
             this.isMovingUp = player.getVelocity().y > ElytraAssistant.CONFIG.elytraActivationSettings.verticalVelocityThreshold / 1000.0;
-            this.isMovingUpFast = player.getVelocity().y > ElytraAssistant.CONFIG.elytraActivationSettings.upwardVelocityThreshold / 1000.0;
+            this.isMovingUpFast = player.getVelocity().y > Math.min(ElytraAssistant.CONFIG.elytraActivationSettings.verticalVelocityThreshold * 5, 1000) / 1000.0;
             this.hasFallenEnough = player.fallDistance > ElytraAssistant.CONFIG.elytraActivationSettings.minFallDistance / 1000.0;
             this.currentTick = client.world.getTime();
             this.areLogsEnabled = ElytraAssistant.CONFIG.debugSettings.enableLogs;

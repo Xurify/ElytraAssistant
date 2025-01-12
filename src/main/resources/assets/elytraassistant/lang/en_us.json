@@ -12,8 +12,6 @@
   "text.autoconfig.elytraassistant.option.elytraActivationSettings.autoElytraEnabled.@Tooltip": "Automatically enable Elytra/Chestplate when taking off or landing",
   "text.autoconfig.elytraassistant.option.elytraActivationSettings.verticalVelocityThreshold": "Vertical Velocity Threshold",
   "text.autoconfig.elytraassistant.option.elytraActivationSettings.verticalVelocityThreshold.@Tooltip": "Vertical velocity threshold for Elytra activation (lower is more sensitive)",
-  "text.autoconfig.elytraassistant.option.elytraActivationSettings.upwardVelocityThreshold": "Upward Velocity Threshold",
-  "text.autoconfig.elytraassistant.option.elytraActivationSettings.upwardVelocityThreshold.@Tooltip": "Upward velocity threshold for Elytra activation (higher is less sensitive)",
   "text.autoconfig.elytraassistant.option.elytraActivationSettings.airTicksThreshold": "Air Ticks Threshold",
   "text.autoconfig.elytraassistant.option.elytraActivationSettings.airTicksThreshold.@Tooltip": "Number of ticks in air before Elytra can activate",
   "text.autoconfig.elytraassistant.option.elytraActivationSettings.minFallDistance": "Minimum Fall Distance",

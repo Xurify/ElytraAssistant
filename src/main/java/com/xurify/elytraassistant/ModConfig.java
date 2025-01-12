@@ -30,7 +30,7 @@ public class ModConfig implements ConfigData {
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.BoundedDiscrete(min = 0, max = 1000)
-        public int upwardVelocityThreshold = 500; // Stored as int, will be divided by 1000 when used
+        public int verticalVelocityThreshold = 100; // Default value of 0.1 * 1000
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.BoundedDiscrete(min = 1, max = 100)
@@ -39,10 +39,6 @@ public class ModConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.BoundedDiscrete(min = 0, max = 10000)
         public int minFallDistance = 3000; // Stored as int, will be divided by 1000 when used
-
-        @ConfigEntry.Gui.Tooltip
-        @ConfigEntry.BoundedDiscrete(min = 0, max = 1000)
-        public int verticalVelocityThreshold = 100; // Default value of 0.1 * 1000
 
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.BoundedDiscrete(min = 1, max = 100)
