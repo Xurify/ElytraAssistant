@@ -14,6 +14,9 @@ public class ModConfig implements ConfigData {
     public ElytraActivationSettings elytraActivationSettings = new ElytraActivationSettings();
 
     @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    public SensitivityTweaks sensitivityTweaks = new SensitivityTweaks();
+
+    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
     public DisplaySettings displaySettings = new DisplaySettings();
 
     @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
@@ -27,7 +30,9 @@ public class ModConfig implements ConfigData {
     public static class ElytraActivationSettings {
         @ConfigEntry.Gui.Tooltip
         public boolean autoElytraEnabled = true;
+    }
 
+    public static class SensitivityTweaks {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.BoundedDiscrete(min = 0, max = 1000)
         public int verticalVelocityThreshold = 100; // Default value of 0.1 * 1000

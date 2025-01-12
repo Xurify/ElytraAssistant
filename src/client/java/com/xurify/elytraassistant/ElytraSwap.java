@@ -76,7 +76,7 @@ public class ElytraSwap {
         } else {
             airTicks = 0;
             ticksSinceGrounded = 0;
-            if (!isElytraEquipped(state.client) && wasInAir && airTime > ElytraAssistant.CONFIG.elytraActivationSettings.airTicksThreshold) {
+            if (!isElytraEquipped(state.client) && wasInAir && airTime > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold) {
                 logInfo("Landing detected. Attempting to equip Chestplate", state.areLogsEnabled);
                 tryEquipChestplate(state.client);
                 wasInAir = false;
@@ -105,7 +105,7 @@ public class ElytraSwap {
 
     private static void handleMidAirActivation(PlayerState state, MinecraftClient client) {
         if (!state.isOnGround && !state.isInFluid && !state.wasRecentlyAirborne && !state.isClimbing
-                && airTicks >= ElytraAssistant.CONFIG.elytraActivationSettings.midAirActivationThreshold
+                && airTicks >= ElytraAssistant.CONFIG.sensitivityTweaks.midAirActivationThreshold
                 && state.wasJumpKeyPressed && !state.player.isFallFlying()) {
 
             logMidAirActivationAttempt(state);
@@ -357,12 +357,12 @@ public class ElytraSwap {
             this.wasJumpKeyPressed = client.options.jumpKey.isPressed();
             this.wasRecentlyAirborne = airTicks < RECENTLY_AIRBORNE_THRESHOLD;
             this.isRunning = player.isSprinting() && player.getVelocity().horizontalLength() > RUNNING_VELOCITY_THRESHOLD;
-            this.hasBeenInAir = airTicks > ElytraAssistant.CONFIG.elytraActivationSettings.airTicksThreshold;
-            this.isInMidAirBalance = Math.abs(player.getVelocity().y) <= ElytraAssistant.CONFIG.elytraActivationSettings.verticalVelocityThreshold / 1000.0;
-            this.isMovingDown = player.getVelocity().y < -ElytraAssistant.CONFIG.elytraActivationSettings.verticalVelocityThreshold / 1000.0;
-            this.isMovingUp = player.getVelocity().y > ElytraAssistant.CONFIG.elytraActivationSettings.verticalVelocityThreshold / 1000.0;
-            this.isMovingUpFast = player.getVelocity().y > Math.min(ElytraAssistant.CONFIG.elytraActivationSettings.verticalVelocityThreshold * 5, 1000) / 1000.0;
-            this.hasFallenEnough = player.fallDistance > ElytraAssistant.CONFIG.elytraActivationSettings.minFallDistance / 1000.0;
+            this.hasBeenInAir = airTicks > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold;
+            this.isInMidAirBalance = Math.abs(player.getVelocity().y) <= ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold / 1000.0;
+            this.isMovingDown = player.getVelocity().y < -ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold / 1000.0;
+            this.isMovingUp = player.getVelocity().y > ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold / 1000.0;
+            this.isMovingUpFast = player.getVelocity().y > Math.min(ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold * 5, 1000) / 1000.0;
+            this.hasFallenEnough = player.fallDistance > ElytraAssistant.CONFIG.sensitivityTweaks.minFallDistance / 1000.0;
             this.currentTick = client.world.getTime();
             this.areLogsEnabled = ElytraAssistant.CONFIG.debugSettings.enableLogs;
         }
