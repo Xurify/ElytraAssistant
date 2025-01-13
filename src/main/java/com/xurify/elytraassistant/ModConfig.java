@@ -8,28 +8,36 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 public class ModConfig implements ConfigData {
 
     @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
-    public GeneralSettings generalSettings = new GeneralSettings();
-
-    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
     public ElytraActivationSettings elytraActivationSettings = new ElytraActivationSettings();
 
     @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
-    public SensitivityTweaks sensitivityTweaks = new SensitivityTweaks();
+    public FireworkRockets fireworkRockets = new FireworkRockets();
 
     @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
     public DisplaySettings displaySettings = new DisplaySettings();
 
     @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
-    public DebugSettings debugSettings = new DebugSettings();
+    public SensitivityTweaks sensitivityTweaks = new SensitivityTweaks();
 
-    public static class GeneralSettings {
-        @ConfigEntry.Gui.Tooltip
-        public boolean preventFireworkGroundPlacement = false;
-    }
+    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    public DebugSettings debugSettings = new DebugSettings();
 
     public static class ElytraActivationSettings {
         @ConfigEntry.Gui.Tooltip
         public boolean autoElytraEnabled = true;
+    }
+
+    public static class FireworkRockets {
+        @ConfigEntry.Gui.Tooltip
+        public boolean disableFireworkRocketsGroundPlacementWithElytra = false;
+
+        @ConfigEntry.Gui.Tooltip
+        public boolean disableFireworkRocketsGroundPlacementCompletely = false;
+    }
+
+    public static class DisplaySettings {
+        @ConfigEntry.Gui.Tooltip
+        public boolean showFlightTime = true;
     }
 
     public static class SensitivityTweaks {
@@ -48,11 +56,6 @@ public class ModConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip
         @ConfigEntry.BoundedDiscrete(min = 1, max = 100)
         public int midAirActivationThreshold = 10;
-    }
-
-    public static class DisplaySettings {
-        @ConfigEntry.Gui.Tooltip
-        public boolean showFlightTime = true;
     }
 
     public static class DebugSettings {

@@ -54,11 +54,16 @@ public class DisableFireworkRocket {
 
     public static void init() {
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (!ElytraAssistant.CONFIG.generalSettings.preventFireworkGroundPlacement) {
+            if (!ElytraAssistant.CONFIG.fireworkRockets.disableFireworkRocketsGroundPlacementWithElytra) {
                 return ActionResult.PASS;
             }
 
             ItemStack heldItem = player.getStackInHand(hand);
+
+            if (ElytraAssistant.CONFIG.fireworkRockets.disableFireworkRocketsGroundPlacementCompletely && heldItem.getItem() == Items.FIREWORK_ROCKET) {
+                return ActionResult.FAIL;
+            }
+
             if (heldItem.getItem() != Items.FIREWORK_ROCKET || !(player.getEquippedStack(EquipmentSlot.CHEST).getItem() instanceof ElytraItem)) {
                 return ActionResult.PASS;
             }

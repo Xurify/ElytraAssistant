@@ -3,9 +3,11 @@
   "key.elytraassistant.elytra_toggle": "Toggle Elytra/Chestplate",
   "text.autoconfig.elytraassistant.title": "Elytra Assistant Configuration",
 
-  "text.autoconfig.elytraassistant.option.generalSettings": "General Settings",
-  "text.autoconfig.elytraassistant.option.generalSettings.preventFireworkGroundPlacement": "Prevent Wasted Firework Rockets",
-  "text.autoconfig.elytraassistant.option.generalSettings.preventFireworkGroundPlacement.@Tooltip": "Prevent using firework rockets on the ground while wearing Elytra",
+  "text.autoconfig.elytraassistant.option.fireworkRockets": "Firework Rockets",
+  "text.autoconfig.elytraassistant.option.fireworkRockets.disableFireworkRocketsGroundPlacementWithElytra": "Disable ground placement whlie wearing Elytra",
+  "text.autoconfig.elytraassistant.option.fireworkRockets.disableFireworkRocketsGroundPlacementWithElytra.@Tooltip": "Prevent using firework rockets on the ground while wearing Elytra",
+  "text.autoconfig.elytraassistant.option.fireworkRockets.disableFireworkRocketsGroundPlacementCompletely": "Restrict to flight usage only",
+  "text.autoconfig.elytraassistant.option.fireworkRockets.disableFireworkRocketsGroundPlacementCompletely.@Tooltip": "Disables using firework rockets completely unless user is currently flying",
 
   "text.autoconfig.elytraassistant.option.elytraActivationSettings": "Elytra Activation Settings",
   "text.autoconfig.elytraassistant.option.elytraActivationSettings.autoElytraEnabled": "Auto Elytra Enabled",
@@ -25,7 +27,7 @@
   "text.autoconfig.elytraassistant.option.displaySettings.showFlightTime": "Show Estimated Flight Time",
   "text.autoconfig.elytraassistant.option.displaySettings.showFlightTime.@Tooltip": "Displays estimated flight time in the Elytra tooltip",
 
-  "text.autoconfig.elytraassistant.option.debugSettings": "Debug Settings",
+  "text.autoconfig.elytraassistant.option.debugSettings": "Debug Settings (FOR DEVELOPERS)",
   "text.autoconfig.elytraassistant.option.debugSettings.enableLogs": "Enable debug logs",
 
   "elytraassistant.tooltip.flightTime": "Est. Flight Time: %s"
