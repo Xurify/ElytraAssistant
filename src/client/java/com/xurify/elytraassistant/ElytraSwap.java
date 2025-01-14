@@ -62,7 +62,7 @@ public class ElytraSwap {
     private static void handleElytraToggleKeyPress(MinecraftClient client) {
         if (ModKeybindings.elytraToggleKeyBinding.wasPressed() && !isToggling) {
             isToggling = true;
-            toggleElytraChestplate(client);
+            toggleElytraChestplate(client, true);
             isToggling = false;
         }
     }
@@ -147,11 +147,11 @@ public class ElytraSwap {
                 .orElse(false);
     }
 
-    public static void toggleElytraChestplate(MinecraftClient client) {
+    public static void toggleElytraChestplate(MinecraftClient client, boolean shouldAutoActivateElytra) {
         Optional.ofNullable(client.player).ifPresent(player -> {
             ItemStack chestItem = player.getEquippedStack(EquipmentSlot.CHEST);
             if (isChestplate(chestItem)) {
-                tryEquipElytra(client, false);
+                tryEquipElytra(client, shouldAutoActivateElytra);
             } else if (isElytra(chestItem)) {
                 tryEquipChestplate(client);
             }
