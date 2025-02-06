@@ -4,10 +4,10 @@
   "text.autoconfig.elytraassistant.title": "Elytra Assistant Configuration",
 
   "text.autoconfig.elytraassistant.option.fireworkRockets": "Firework Rockets",
-  "text.autoconfig.elytraassistant.option.fireworkRockets.disableFireworkRocketsGroundPlacementWithElytra": "Disable ground placement whlie wearing Elytra",
-  "text.autoconfig.elytraassistant.option.fireworkRockets.disableFireworkRocketsGroundPlacementWithElytra.@Tooltip": "Prevent using firework rockets on the ground while wearing Elytra",
-  "text.autoconfig.elytraassistant.option.fireworkRockets.disableFireworkRocketsGroundPlacementCompletely": "Restrict to flight usage only",
-  "text.autoconfig.elytraassistant.option.fireworkRockets.disableFireworkRocketsGroundPlacementCompletely.@Tooltip": "Disables using firework rockets completely unless user is currently flying",
+  "text.autoconfig.elytraassistant.option.fireworkRockets.disableDecorativeExplosionsWhileWearingElytra": "Disable decorative explosions whlie wearing Elytra",
+  "text.autoconfig.elytraassistant.option.fireworkRockets.disableDecorativeExplosionsWhileWearingElytra.@Tooltip": "Prevent using firework rockets as a decoration while Elytra is equipped",
+  "text.autoconfig.elytraassistant.option.fireworkRockets.disableDecorativeExplosionsCompletely": "Restrict to flight usage only",
+  "text.autoconfig.elytraassistant.option.fireworkRockets.disableDecorativeExplosionsCompletely.@Tooltip": "Disables firework rockets being used as a decoration",
 
   "text.autoconfig.elytraassistant.option.elytraActivationSettings": "Elytra Activation Settings",
   "text.autoconfig.elytraassistant.option.elytraActivationSettings.autoElytraEnabled": "Auto Elytra Enabled",

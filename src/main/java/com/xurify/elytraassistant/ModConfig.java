@@ -29,10 +29,10 @@ public class ModConfig implements ConfigData {
 
     public static class FireworkRockets {
         @ConfigEntry.Gui.Tooltip
-        public boolean disableFireworkRocketsGroundPlacementWithElytra = false;
+        public boolean disableDecorativeExplosionsWhileWearingElytra = false;
 
         @ConfigEntry.Gui.Tooltip
-        public boolean disableFireworkRocketsGroundPlacementCompletely = false;
+        public boolean disableDecorativeExplosionsCompletely = false;
     }
 
     public static class DisplaySettings {
