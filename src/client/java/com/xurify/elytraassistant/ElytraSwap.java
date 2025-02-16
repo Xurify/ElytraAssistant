@@ -1,15 +1,16 @@
 package com.xurify.elytraassistant;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.entity.event.v1.FabricElytraItem;
+//import net.fabricmc.fabric.api.entity.event.v1.FabricElytraItem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ElytraItem;
+//import net.minecraft.item.ElytraItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
 
@@ -106,7 +107,7 @@ public class ElytraSwap {
     private static void handleMidAirActivation(PlayerState state, MinecraftClient client) {
         if (!state.isOnGround && !state.isInFluid && !state.wasRecentlyAirborne && !state.isClimbing
                 && airTicks >= ElytraAssistant.CONFIG.sensitivityTweaks.midAirActivationThreshold
-                && state.wasJumpKeyPressed && !state.player.isFallFlying()) {
+                && state.wasJumpKeyPressed && !state.player.getAbilities().flying) {
 
             logMidAirActivationAttempt(state);
             if (state.isInMidAirBalance || state.isMovingDown || state.isMovingUp) {
@@ -116,10 +117,11 @@ public class ElytraSwap {
     }
 
     private static void handleFallingDetection(PlayerState state, MinecraftClient client) {
-        if (!state.isOnGround && state.hasBeenInAir && state.hasFallenEnough && !state.player.isFallFlying() && state.wasJumpKeyPressed) {
+        boolean isFlying = state.player.getAbilities().flying;
+        if (!state.isOnGround && state.hasBeenInAir && state.hasFallenEnough && !isFlying && state.wasJumpKeyPressed) {
             logInfo("Attempting to equip Elytra - Significant Fall", state.areLogsEnabled);
             tryEquipElytra(client, true);
-        } else if (!state.isOnGround && state.isMovingUpFast && !state.player.isFallFlying() && state.wasJumpKeyPressed) {
+        } else if (!state.isOnGround && state.isMovingUpFast && !isFlying && state.wasJumpKeyPressed) {
             logInfo("Attempting to equip Elytra - Upward Boost", state.areLogsEnabled);
             tryEquipElytra(client, true);
         }
@@ -143,7 +145,7 @@ public class ElytraSwap {
 
     private static boolean isElytraEquipped(MinecraftClient client) {
         return Optional.ofNullable(client.player)
-                .map(player -> player.getEquippedStack(EquipmentSlot.CHEST).getItem() instanceof ElytraItem)
+                .map(player -> player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA)
                 .orElse(false);
     }
 
@@ -159,19 +161,25 @@ public class ElytraSwap {
     }
 
     private static boolean isElytra(ItemStack stack) {
-        return stack.getItem() instanceof ElytraItem || stack.getItem() instanceof FabricElytraItem;
+        return stack.getItem() == Items.ELYTRA;
     }
 
     private static boolean isChestplate(ItemStack stack) {
-        return stack.getItem() instanceof ArmorItem && ((ArmorItem) stack.getItem()).getSlotType() == EquipmentSlot.CHEST;
+        boolean isNetheriteChestplate = stack.isOf(Items.NETHERITE_CHESTPLATE);
+        boolean isDiamondChestplate = stack.isOf(Items.DIAMOND_CHESTPLATE);
+        boolean isGoldChestplate = stack.isOf(Items.GOLDEN_CHESTPLATE);
+        boolean isIronChestplate = stack.isOf(Items.IRON_CHESTPLATE);
+        boolean isChainChestplate = stack.isOf(Items.CHAINMAIL_CHESTPLATE);
+        boolean isLeatherChestplate = stack.isOf(Items.LEATHER_CHESTPLATE);
+        return isNetheriteChestplate || isDiamondChestplate || isGoldChestplate || isIronChestplate || isChainChestplate || isLeatherChestplate;
     }
 
     public static void tryEquipElytra(MinecraftClient client, boolean shouldActivate) {
         Optional.ofNullable(client.player).ifPresent(player -> {
             ItemStack currentChest = player.getEquippedStack(EquipmentSlot.CHEST);
-            if (currentChest.getItem() instanceof ElytraItem) return;
+            if (currentChest.getItem() == Items.ELYTRA) return;
 
-            int elytraSlot = findItemSlot(client, item -> item instanceof ElytraItem, lastWornElytra);
+            int elytraSlot = findItemSlot(client, item -> item == Items.ELYTRA, lastWornElytra);
             if (elytraSlot != -1) {
                 swapItems(client, elytraSlot);
                 if (shouldActivate) {
@@ -188,7 +196,7 @@ public class ElytraSwap {
             if (currentChest.getItem() instanceof ArmorItem) return;
 
             int chestplateSlot = findItemSlot(client,
-                    item -> item instanceof ArmorItem && ((ArmorItem) item).getSlotType() == EquipmentSlot.CHEST,
+                    item -> item instanceof ArmorItem,
                     lastWornChestplate);
             if (chestplateSlot != -1) {
                 swapItems(client, chestplateSlot);
@@ -238,7 +246,7 @@ public class ElytraSwap {
 
                     ItemStack currentChestSlot = pair.player.getInventory().getArmorStack(2);
 
-                    if (currentChestSlot.getItem() instanceof ElytraItem) {
+                    if (currentChestSlot.getItem() == Items.ELYTRA) {
                         lastWornElytra = currentChestSlot.copy();
                     } else if (currentChestSlot.getItem() instanceof ArmorItem) {
                         lastWornChestplate = currentChestSlot.copy();
@@ -259,7 +267,7 @@ public class ElytraSwap {
             try {
                 if (client.getNetworkHandler() != null) {
                     client.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
-                    player.startFallFlying();
+                    //player.getAbilities().flying = false;
                 }
             } catch (NullPointerException exception) {
                 logError("Error activating Elytra", exception, ElytraAssistant.CONFIG.debugSettings.enableLogs);
@@ -299,7 +307,7 @@ public class ElytraSwap {
         logInfo("Was recently in airborne: " + state.wasRecentlyAirborne, true);
         logInfo("Is submerged in water: " + state.isSubmergedInWater, true);
         logInfo("Is swimming: " + state.isSwimming, true);
-        logInfo("Is fall flying: " + state.player.isFallFlying(), true);
+        logInfo("Is fall flying: " + state.player.getAbilities().flying, true);
         logInfo("isRunning: " + state.isRunning, true);
         logInfo("prevTickJumpKeyPressed: " + prevTickJumpKeyPressed, true);
         logInfo("ticksSinceGrounded: " + ticksSinceGrounded, true);

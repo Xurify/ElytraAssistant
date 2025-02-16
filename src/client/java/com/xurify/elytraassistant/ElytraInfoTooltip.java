@@ -3,9 +3,10 @@ package com.xurify.elytraassistant;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
-import net.minecraft.item.ElytraItem;
+//import net.minecraft.item.ElytraItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -17,7 +18,7 @@ public class ElytraInfoTooltip {
 
     public static void init() {
         ItemTooltipCallback.EVENT.register((stack, context, lines, list) -> {
-            if (stack.getItem() instanceof ElytraItem && ElytraAssistant.CONFIG.displaySettings.showFlightTime) {
+            if (stack.getItem() == Items.ELYTRA && ElytraAssistant.CONFIG.displaySettings.showFlightTime) {
                 addElytraTooltip(stack, list, context);
             }
         });
@@ -28,7 +29,7 @@ public class ElytraInfoTooltip {
         int currentDurability = maxDurability - itemStack.getDamage();
         float durabilityPercentage = (float) currentDurability / maxDurability;
 
-        var unbreakingEnchantment = context.getRegistryLookup().getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.UNBREAKING);
+        var unbreakingEnchantment = context.getRegistryLookup().getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.UNBREAKING);
         int unbreakingLevel = EnchantmentHelper.getLevel(unbreakingEnchantment, itemStack);
 
         float durabilityMultiplier = calculateUnbreakingMultiplier(unbreakingLevel);
