@@ -181,12 +181,18 @@ public class ElytraSwap {
                 return;
 
             int elytraSlot = findItemSlot(client, item -> item == Items.ELYTRA, lastWornElytra);
+
             if (elytraSlot != -1) {
+                logInfo("Found Elytra at slot: " + elytraSlot, ElytraAssistant.CONFIG.debugSettings.enableLogs);
                 swapItems(client, elytraSlot);
                 if (shouldActivate) {
                     activateElytra(client);
+                    logInfo("Elytra equipped and activated - slot: " + elytraSlot,
+                            ElytraAssistant.CONFIG.debugSettings.enableLogs);
                 }
-                logInfo("Elytra equipped and activated", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+            } else {
+                logInfo("Elytra not found in inventory - slot: " + elytraSlot,
+                        ElytraAssistant.CONFIG.debugSettings.enableLogs);
             }
         });
     }
@@ -199,15 +205,14 @@ public class ElytraSwap {
                 return;
             }
 
-            int chestplateSlot = findItemSlot(client,
-                    item -> {
-                        logInfo("Looking for chestplate...", ElytraAssistant.CONFIG.debugSettings.enableLogs);
-                        return isChestplate(item.getDefaultStack());
-                    },
-                    lastWornChestplate);
+            int chestplateSlot = findItemSlot(client, item -> isChestplate(item.getDefaultStack()), lastWornChestplate);
+
             if (chestplateSlot != -1) {
+                logInfo("Found Chestplate at slot: " + chestplateSlot, ElytraAssistant.CONFIG.debugSettings.enableLogs);
                 swapItems(client, chestplateSlot);
-                logInfo("Chestplate equipped", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+            } else {
+                logInfo("Chestplate not found in inventory - slot: " + chestplateSlot,
+                        ElytraAssistant.CONFIG.debugSettings.enableLogs);
             }
         });
     }
@@ -245,17 +250,16 @@ public class ElytraSwap {
                 .orElse(-1);
     }
 
-    private static void swapItems(MinecraftClient client, int slot) {
+    private static void swapItems(MinecraftClient client, int inventorySlot) {
         Optional.ofNullable(client.player)
                 .flatMap(player -> Optional.ofNullable(client.interactionManager)
                         .map(manager -> new PlayerManagerPair(player, manager)))
                 .ifPresent(pair -> {
-                    if (slot == -1)
+                    if (inventorySlot == -1)
                         return;
 
-                    // ItemStack currentChestSlot = pair.player.getInventory().getArmorStack(2);
-                    ItemStack currentChestSlot = pair.player.getInventory().getStack(slot);
-                    logInfo("Current chest slot: " + slot + "Item: " + currentChestSlot.getName().getString(), true);
+                    ItemStack currentChestSlot = pair.player.getInventory().getStack(inventorySlot);
+                    logInfo("Current swap slot: " + inventorySlot + " Item: " + currentChestSlot.getName().getString(), true);
 
                     if (currentChestSlot.getItem() == Items.ELYTRA) {
                         lastWornElytra = currentChestSlot.copy();
@@ -264,13 +268,34 @@ public class ElytraSwap {
                     }
 
                     try {
-                        pair.manager.clickSlot(0, slot, 0, SlotActionType.PICKUP, pair.player);
-                        pair.manager.clickSlot(0, 6, 0, SlotActionType.PICKUP, pair.player);
-                        pair.manager.clickSlot(0, slot, 0, SlotActionType.PICKUP, pair.player);
+                        int containerSlot = inventoryToContainerSlot(inventorySlot);
+                        int chestplateArmorSlot = 6; // This is the chestplate armor slot in the container
+                        logInfo("Converting inventory slot " + inventorySlot + " to container slot " + containerSlot, true);
+                        pair.manager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, pair.player);
+                        pair.manager.clickSlot(0, chestplateArmorSlot, 0, SlotActionType.PICKUP, pair.player);
+                        pair.manager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, pair.player);
+                        logInfo("Swapped items in inventory", ElytraAssistant.CONFIG.debugSettings.enableLogs);
                     } catch (NullPointerException exception) {
                         logError("Error swapping items", exception, ElytraAssistant.CONFIG.debugSettings.enableLogs);
                     }
                 });
+    }
+
+    private static int inventoryToContainerSlot(int inventorySlot) {
+        // Hotbar is 0-8 in inventory but 36-44 in container
+        if (inventorySlot >= 0 && inventorySlot <= 8) {
+            return inventorySlot + 36;
+        }
+        // Main inventory is 9-35 in both
+        else if (inventorySlot >= 9 && inventorySlot <= 35) {
+            return inventorySlot;
+        }
+        // Armor slots
+        else if (inventorySlot >= 36 && inventorySlot <= 39) {
+            return inventorySlot - 31; // Maps 36->5, 37->6, 38->7, 39->8
+        }
+        // For any other slots (like crafting), return as is
+        return inventorySlot;
     }
 
     private static void activateElytra(MinecraftClient client) {
@@ -372,7 +397,7 @@ public class ElytraSwap {
             }
 
             this.isOnGround = player.isOnGround();
-            this.isInFluid = player.isInFluid() || player.isTouchingWater() || player.isSubmergedInWater();
+            this.isInFluid = player.isTouchingWater() || player.isSubmergedInWater();
             this.isSubmergedInWater = player.isSubmergedInWater();
             this.isSwimming = player.isSwimming();
             this.isClimbing = player.isClimbing();
