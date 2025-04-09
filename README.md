@@ -33,7 +33,7 @@ Once installed, the mod works automatically:
 - The Elytra/Chestplate swap occurs automatically based on your actions.
 - Hover over an Elytra in your inventory to see the estimated flight time tooltip.
 - The mod will prevent firework rocket usage when you're not wearing an Elytra.
-- Includes a keybind for manual swapping (default key: ~).
+- Includes a key bind for manual swapping (default key: ~).
 
 ## Configuration
 
