@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 public class ElytraSwap {
-    private static final int REsCENTLY_AIRBORNE_THRESHOLD = 10;
+    private static final int RECENTLY_AIRBORNE_THRESHOLD = 10;
     private static final double RUNNING_VELOCITY_THRESHOLD = 0.1;
     private static final long DOUBLE_JUMP_WINDOW = 20L;
 
