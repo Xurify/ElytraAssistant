@@ -10,6 +10,7 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ElytraItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
 
@@ -39,7 +40,8 @@ public class ElytraSwap {
     private static void onClientTick(MinecraftClient client) {
         handleElytraToggleKeyPress(client);
 
-        if (!isValidTickState(client)) return;
+        if (!isValidTickState(client))
+            return;
 
         PlayerState playerState = new PlayerState(client);
 
@@ -76,7 +78,8 @@ public class ElytraSwap {
         } else {
             airTicks = 0;
             ticksSinceGrounded = 0;
-            if (!isElytraEquipped(state.client) && wasInAir && airTime > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold) {
+            if (!isElytraEquipped(state.client) && wasInAir
+                    && airTime > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold) {
                 logInfo("Landing detected. Attempting to equip Chestplate", state.areLogsEnabled);
                 tryEquipChestplate(state.client);
                 wasInAir = false;
@@ -116,10 +119,12 @@ public class ElytraSwap {
     }
 
     private static void handleFallingDetection(PlayerState state, MinecraftClient client) {
-        if (!state.isOnGround && state.hasBeenInAir && state.hasFallenEnough && !state.player.isFallFlying() && state.wasJumpKeyPressed) {
+        if (!state.isOnGround && state.hasBeenInAir && state.hasFallenEnough && !state.player.isFallFlying()
+                && state.wasJumpKeyPressed) {
             logInfo("Attempting to equip Elytra - Significant Fall", state.areLogsEnabled);
             tryEquipElytra(client, true);
-        } else if (!state.isOnGround && state.isMovingUpFast && !state.player.isFallFlying() && state.wasJumpKeyPressed) {
+        } else if (!state.isOnGround && state.isMovingUpFast && !state.player.isFallFlying()
+                && state.wasJumpKeyPressed) {
             logInfo("Attempting to equip Elytra - Upward Boost", state.areLogsEnabled);
             tryEquipElytra(client, true);
         }
@@ -163,13 +168,15 @@ public class ElytraSwap {
     }
 
     private static boolean isChestplate(ItemStack stack) {
-        return stack.getItem() instanceof ArmorItem && ((ArmorItem) stack.getItem()).getSlotType() == EquipmentSlot.CHEST;
+        return stack.getItem() instanceof ArmorItem
+                && ((ArmorItem) stack.getItem()).getSlotType() == EquipmentSlot.CHEST;
     }
 
     public static void tryEquipElytra(MinecraftClient client, boolean shouldActivate) {
         Optional.ofNullable(client.player).ifPresent(player -> {
             ItemStack currentChest = player.getEquippedStack(EquipmentSlot.CHEST);
-            if (currentChest.getItem() instanceof ElytraItem) return;
+            if (currentChest.getItem() instanceof ElytraItem)
+                return;
 
             int elytraSlot = findItemSlot(client, item -> item instanceof ElytraItem, lastWornElytra);
             if (elytraSlot != -1) {
@@ -185,7 +192,8 @@ public class ElytraSwap {
     public static void tryEquipChestplate(MinecraftClient client) {
         Optional.ofNullable(client.player).ifPresent(player -> {
             ItemStack currentChest = player.getEquippedStack(EquipmentSlot.CHEST);
-            if (currentChest.getItem() instanceof ArmorItem) return;
+            if (currentChest.getItem() instanceof ArmorItem)
+                return;
 
             int chestplateSlot = findItemSlot(client,
                     item -> item instanceof ArmorItem && ((ArmorItem) item).getSlotType() == EquipmentSlot.CHEST,
@@ -202,7 +210,8 @@ public class ElytraSwap {
                 .map(player -> {
                     if (!preferredItem.isEmpty()) {
                         int preferredSlot = findExactItemSlot(client, preferredItem.getItem());
-                        if (preferredSlot != -1) return preferredSlot;
+                        if (preferredSlot != -1)
+                            return preferredSlot;
                     }
 
                     for (int i = 0; i < player.getInventory().size(); i++) {
@@ -229,36 +238,57 @@ public class ElytraSwap {
                 .orElse(-1);
     }
 
-    private static void swapItems(MinecraftClient client, int slot) {
+    private static void swapItems(MinecraftClient client, int inventorySlot) {
         Optional.ofNullable(client.player)
                 .flatMap(player -> Optional.ofNullable(client.interactionManager)
                         .map(manager -> new PlayerManagerPair(player, manager)))
                 .ifPresent(pair -> {
-                    if (slot == -1) return;
+                    if (inventorySlot == -1)
+                        return;
 
-                    ItemStack currentChestSlot = pair.player.getInventory().getArmorStack(2);
+                    ItemStack currentChestSlot = pair.player.getInventory().getStack(inventorySlot);
+                    logInfo("Current swap slot: " + inventorySlot + " Item: " + currentChestSlot.getName().getString(),
+                            true);
 
-                    if (currentChestSlot.getItem() instanceof ElytraItem) {
+                    if (currentChestSlot.getItem() == Items.ELYTRA) {
                         lastWornElytra = currentChestSlot.copy();
-                    } else if (currentChestSlot.getItem() instanceof ArmorItem) {
+                    } else if (isChestplate(currentChestSlot)) {
                         lastWornChestplate = currentChestSlot.copy();
                     }
 
                     try {
-                        pair.manager.clickSlot(0, slot, 0, SlotActionType.PICKUP, pair.player);
-                        pair.manager.clickSlot(0, 6, 0, SlotActionType.PICKUP, pair.player);
-                        pair.manager.clickSlot(0, slot, 0, SlotActionType.PICKUP, pair.player);
+                        int containerSlot = inventoryToContainerSlot(inventorySlot);
+                        int chestplateArmorSlot = 6; // This is the chestplate armor slot in the container
+                        logInfo("Converting inventory slot " + inventorySlot + " to container slot " + containerSlot,
+                                true);
+                        pair.manager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, pair.player);
+                        pair.manager.clickSlot(0, chestplateArmorSlot, 0, SlotActionType.PICKUP, pair.player);
+                        pair.manager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, pair.player);
+                        logInfo("Swapped items in inventory", ElytraAssistant.CONFIG.debugSettings.enableLogs);
                     } catch (NullPointerException exception) {
                         logError("Error swapping items", exception, ElytraAssistant.CONFIG.debugSettings.enableLogs);
                     }
                 });
     }
 
+    private static int inventoryToContainerSlot(int inventorySlot) {
+        // Hotbar is 0-8 in inventory but 36-44 in container
+        if (inventorySlot >= 0 && inventorySlot <= 8) {
+            return inventorySlot + 36;
+        }
+        // Main inventory is 9-35 in both
+        else if (inventorySlot >= 9 && inventorySlot <= 35) {
+            return inventorySlot;
+        }
+        return inventorySlot;
+    }
+
     private static void activateElytra(MinecraftClient client) {
         Optional.ofNullable(client.player).ifPresent(player -> {
             try {
                 if (client.getNetworkHandler() != null) {
-                    client.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
+                    client.getNetworkHandler().sendPacket(
+                            new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
                     player.startFallFlying();
                 }
             } catch (NullPointerException exception) {
@@ -272,6 +302,7 @@ public class ElytraSwap {
             ElytraAssistant.LOGGER.info(message);
         }
     }
+
     private static void logError(String message, Exception e, boolean enableDebug) {
         if (enableDebug) {
             ElytraAssistant.LOGGER.error(message, e);
@@ -279,7 +310,8 @@ public class ElytraSwap {
     }
 
     private static void logJumpDebugInfo(PlayerState state) {
-        if (!state.areLogsEnabled) return;
+        if (!state.areLogsEnabled)
+            return;
 
         logInfo("===========================", true);
         logInfo("Jump key pressed. Debug info:", true);
@@ -356,13 +388,20 @@ public class ElytraSwap {
             this.isClimbing = player.isClimbing();
             this.wasJumpKeyPressed = client.options.jumpKey.isPressed();
             this.wasRecentlyAirborne = airTicks < RECENTLY_AIRBORNE_THRESHOLD;
-            this.isRunning = player.isSprinting() && player.getVelocity().horizontalLength() > RUNNING_VELOCITY_THRESHOLD;
+            this.isRunning = player.isSprinting()
+                    && player.getVelocity().horizontalLength() > RUNNING_VELOCITY_THRESHOLD;
             this.hasBeenInAir = airTicks > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold;
-            this.isInMidAirBalance = Math.abs(player.getVelocity().y) <= ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold / 1000.0;
-            this.isMovingDown = player.getVelocity().y < -ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold / 1000.0;
-            this.isMovingUp = player.getVelocity().y > ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold / 1000.0;
-            this.isMovingUpFast = player.getVelocity().y > Math.min(ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold * 5, 1000) / 1000.0;
-            this.hasFallenEnough = player.fallDistance > ElytraAssistant.CONFIG.sensitivityTweaks.minFallDistance / 1000.0;
+            this.isInMidAirBalance = Math
+                    .abs(player.getVelocity().y) <= ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold
+                            / 1000.0;
+            this.isMovingDown = player
+                    .getVelocity().y < -ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold / 1000.0;
+            this.isMovingUp = player
+                    .getVelocity().y > ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold / 1000.0;
+            this.isMovingUpFast = player.getVelocity().y > Math
+                    .min(ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold * 5, 1000) / 1000.0;
+            this.hasFallenEnough = player.fallDistance > ElytraAssistant.CONFIG.sensitivityTweaks.minFallDistance
+                    / 1000.0;
             this.currentTick = client.world.getTime();
             this.areLogsEnabled = ElytraAssistant.CONFIG.debugSettings.enableLogs;
         }
