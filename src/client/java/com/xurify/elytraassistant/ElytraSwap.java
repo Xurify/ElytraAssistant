@@ -12,6 +12,7 @@ import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class ElytraSwap {
@@ -19,13 +20,15 @@ public class ElytraSwap {
     private static final double RUNNING_VELOCITY_THRESHOLD = 0.1;
     private static final long DOUBLE_JUMP_WINDOW = 20L;
 
-    private static boolean isToggling = false;
     private static ItemStack originalChestItem = ItemStack.EMPTY;
     private static ItemStack lastWornChestplate = ItemStack.EMPTY;
     private static ItemStack lastWornElytra = ItemStack.EMPTY;
+
+    private static boolean isToggling = false;
     private static boolean hadArmorBeforeFlight = false;
     private static boolean prevTickOnGround = true;
     private static boolean prevTickJumpKeyPressed = false;
+
     private static int ticksSinceGrounded = 0;
     private static int airTicks = 0;
     private static long lastJumpTick = 0;
@@ -217,8 +220,8 @@ public class ElytraSwap {
             }
 
             int chestplateSlot = findItemSlot(client,
-                        item -> isChestplate(item.getDefaultStack()),
-                        lastWornChestplate);
+                    item -> isChestplate(item.getDefaultStack()),
+                    lastWornChestplate);
             if (chestplateSlot != -1) {
                 swapItems(client, chestplateSlot);
                 logInfo("Chestplate equipped (fallback)", ElytraAssistant.CONFIG.debugSettings.enableLogs);
@@ -230,15 +233,13 @@ public class ElytraSwap {
         return stack.getItem() == Items.ELYTRA;
     }
 
+    private static final Set<Item> CHESTPLATE_ITEMS = Set.of(
+            Items.NETHERITE_CHESTPLATE, Items.DIAMOND_CHESTPLATE,
+            Items.GOLDEN_CHESTPLATE, Items.IRON_CHESTPLATE,
+            Items.CHAINMAIL_CHESTPLATE, Items.LEATHER_CHESTPLATE);
+
     private static boolean isChestplate(ItemStack stack) {
-        boolean isNetheriteChestplate = stack.isOf(Items.NETHERITE_CHESTPLATE);
-        boolean isDiamondChestplate = stack.isOf(Items.DIAMOND_CHESTPLATE);
-        boolean isGoldChestplate = stack.isOf(Items.GOLDEN_CHESTPLATE);
-        boolean isIronChestplate = stack.isOf(Items.IRON_CHESTPLATE);
-        boolean isChainChestplate = stack.isOf(Items.CHAINMAIL_CHESTPLATE);
-        boolean isLeatherChestplate = stack.isOf(Items.LEATHER_CHESTPLATE);
-        return isNetheriteChestplate || isDiamondChestplate || isGoldChestplate || isIronChestplate || isChainChestplate
-                || isLeatherChestplate;
+        return CHESTPLATE_ITEMS.contains(stack.getItem());
     }
 
     public static void tryEquipElytra(MinecraftClient client, boolean shouldActivate) {
