@@ -20,8 +20,10 @@ public class ElytraSwap {
     private static final long DOUBLE_JUMP_WINDOW = 20L;
 
     private static boolean isToggling = false;
+    private static ItemStack originalChestItem = ItemStack.EMPTY;
     private static ItemStack lastWornChestplate = ItemStack.EMPTY;
     private static ItemStack lastWornElytra = ItemStack.EMPTY;
+    private static boolean hadArmorBeforeFlight = false;
     private static boolean prevTickOnGround = true;
     private static boolean prevTickJumpKeyPressed = false;
     private static int ticksSinceGrounded = 0;
@@ -42,11 +44,16 @@ public class ElytraSwap {
 
         PlayerState playerState = new PlayerState(client);
 
-        updateAirState(playerState);
-        handleJumpKeyPress(playerState, client);
-        handleMidAirActivation(playerState, client);
-        handleFallingDetection(playerState, client);
-        handleLandingDetection(playerState, client);
+        boolean hasElytraInInventory = hasElytraInInventory(client);
+
+        updateAirState(playerState, hasElytraInInventory);
+        handleJumpKeyPress(playerState, client, hasElytraInInventory);
+
+        if (hasElytraInInventory) {
+            handleMidAirActivation(playerState, client);
+            handleFallingDetection(playerState, client);
+            handleLandingDetection(playerState, client);
+        }
 
         updatePreviousTickState(playerState);
     }
@@ -66,7 +73,7 @@ public class ElytraSwap {
         }
     }
 
-    private static void updateAirState(PlayerState state) {
+    private static void updateAirState(PlayerState state, boolean hasElytraInInventory) {
         if (!state.isOnGround) {
             airTicks++;
             airTime++;
@@ -75,12 +82,19 @@ public class ElytraSwap {
         } else {
             airTicks = 0;
             ticksSinceGrounded = 0;
-            if (!isElytraEquipped(state.client) && wasInAir
+            if (hasElytraInInventory && !isElytraEquipped(state.client) && wasInAir
                     && airTime > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold) {
-                logInfo("Landing detected. Attempting to equip Chestplate", state.areLogsEnabled);
-                tryEquipChestplate(state.client);
+
+                if (hadArmorBeforeFlight) {
+                    logInfo("Landing detected. Attempting to equip Chestplate", state.areLogsEnabled);
+                    tryRestoreOriginalChestplate(state.client);
+                } else {
+                    logInfo("Landing detected. Player had no armor before flight.", state.areLogsEnabled);
+                }
                 wasInAir = false;
                 airTime = 0;
+                originalChestItem = ItemStack.EMPTY;
+                hadArmorBeforeFlight = false;
             }
         }
 
@@ -89,12 +103,18 @@ public class ElytraSwap {
         }
     }
 
-    private static void handleJumpKeyPress(PlayerState state, MinecraftClient client) {
+    private static void updatePreviousTickState(PlayerState state) {
+        prevTickOnGround = state.isOnGround;
+        prevTickJumpKeyPressed = state.wasJumpKeyPressed;
+    }
+
+    private static void handleJumpKeyPress(PlayerState state, MinecraftClient client, boolean hasElytraInInventory) {
         if (state.areLogsEnabled && state.wasJumpKeyPressed && !prevTickJumpKeyPressed) {
             logJumpDebugInfo(state);
         }
 
-        if (!state.isOnGround && !state.isInFluid && state.wasJumpKeyPressed && !prevTickJumpKeyPressed) {
+        if (hasElytraInInventory && !state.isOnGround && !state.isInFluid && state.wasJumpKeyPressed
+                && !prevTickJumpKeyPressed) {
             if (state.currentTick - lastJumpTick <= DOUBLE_JUMP_WINDOW) {
                 logInfo("Attempting to equip Elytra - Double Jump", state.areLogsEnabled);
                 tryEquipElytra(client, true);
@@ -104,6 +124,10 @@ public class ElytraSwap {
     }
 
     private static void handleMidAirActivation(PlayerState state, MinecraftClient client) {
+        if (state.currentTick - lastJumpTick <= DOUBLE_JUMP_WINDOW) {
+            return;
+        }
+
         if (!state.isOnGround && !state.isInFluid && !state.wasRecentlyAirborne && !state.isClimbing
                 && airTicks >= ElytraAssistant.CONFIG.sensitivityTweaks.midAirActivationThreshold
                 && state.wasJumpKeyPressed && !state.player.getAbilities().flying) {
@@ -116,6 +140,10 @@ public class ElytraSwap {
     }
 
     private static void handleFallingDetection(PlayerState state, MinecraftClient client) {
+        if (state.currentTick - lastJumpTick <= DOUBLE_JUMP_WINDOW) {
+            return;
+        }
+
         boolean isFlying = state.player.getAbilities().flying;
         if (!state.isOnGround && state.hasBeenInAir && state.hasFallenEnough && !isFlying && state.wasJumpKeyPressed) {
             logInfo("Attempting to equip Elytra - Significant Fall", state.areLogsEnabled);
@@ -128,8 +156,12 @@ public class ElytraSwap {
 
     private static void handleLandingDetection(PlayerState state, MinecraftClient client) {
         if (!prevTickOnGround && state.isOnGround && state.hasBeenInAir) {
-            logInfo("Attempting to equip Chestplate - Land", state.areLogsEnabled);
-            tryEquipChestplate(client);
+            if (hadArmorBeforeFlight) {
+                logInfo("Attempting to restore original armor - Land", state.areLogsEnabled);
+                tryRestoreOriginalChestplate(client);
+            } else {
+                logInfo("Landing detected but player had no armor before flight", state.areLogsEnabled);
+            }
         }
 
         if (state.isOnGround && !prevTickOnGround) {
@@ -137,9 +169,17 @@ public class ElytraSwap {
         }
     }
 
-    private static void updatePreviousTickState(PlayerState state) {
-        prevTickOnGround = state.isOnGround;
-        prevTickJumpKeyPressed = state.wasJumpKeyPressed;
+    private static boolean hasElytraInInventory(MinecraftClient client) {
+        return Optional.ofNullable(client.player)
+                .map(player -> {
+                    for (int i = 0; i < player.getInventory().size(); i++) {
+                        if (player.getInventory().getStack(i).getItem() == Items.ELYTRA) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                .orElse(false);
     }
 
     private static boolean isElytraEquipped(MinecraftClient client) {
@@ -155,6 +195,33 @@ public class ElytraSwap {
                 tryEquipElytra(client, shouldAutoActivateElytra);
             } else if (isElytra(chestItem)) {
                 tryEquipChestplate(client);
+            }
+        });
+    }
+
+    private static void tryRestoreOriginalChestplate(MinecraftClient client) {
+        Optional.ofNullable(client.player).ifPresent(player -> {
+            ItemStack currentChest = player.getEquippedStack(EquipmentSlot.CHEST);
+            if (isChestplate(currentChest)) {
+                logInfo("Already wearing a chestplate", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+                return;
+            }
+
+            if (!originalChestItem.isEmpty()) {
+                int originalChestSlot = findExactItemSlot(client, originalChestItem.getItem());
+                if (originalChestSlot != -1) {
+                    swapItems(client, originalChestSlot);
+                    logInfo("Restored original chestplate", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+                    return;
+                }
+            }
+
+            int chestplateSlot = findItemSlot(client,
+                        item -> isChestplate(item.getDefaultStack()),
+                        lastWornChestplate);
+            if (chestplateSlot != -1) {
+                swapItems(client, chestplateSlot);
+                logInfo("Chestplate equipped (fallback)", ElytraAssistant.CONFIG.debugSettings.enableLogs);
             }
         });
     }
@@ -179,6 +246,14 @@ public class ElytraSwap {
             ItemStack currentChest = player.getEquippedStack(EquipmentSlot.CHEST);
             if (currentChest.getItem() == Items.ELYTRA)
                 return;
+
+            if (!currentChest.isEmpty()) {
+                originalChestItem = currentChest.copy();
+                hadArmorBeforeFlight = isChestplate(currentChest);
+            } else {
+                originalChestItem = ItemStack.EMPTY;
+                hadArmorBeforeFlight = false;
+            }
 
             int elytraSlot = findItemSlot(client, item -> item == Items.ELYTRA, lastWornElytra);
             if (elytraSlot != -1) {
@@ -254,7 +329,8 @@ public class ElytraSwap {
                         return;
 
                     ItemStack currentChestSlot = pair.player.getInventory().getStack(inventorySlot);
-                    logInfo("Current swap slot: " + inventorySlot + " Item: " + currentChestSlot.getName().getString(), true);
+                    logInfo("Current swap slot: " + inventorySlot + " Item: " + currentChestSlot.getName().getString(),
+                            true);
 
                     if (currentChestSlot.getItem() == Items.ELYTRA) {
                         lastWornElytra = currentChestSlot.copy();
@@ -265,7 +341,8 @@ public class ElytraSwap {
                     try {
                         int containerSlot = inventoryToContainerSlot(inventorySlot);
                         int chestplateArmorSlot = 6; // This is the chestplate armor slot in the container
-                        logInfo("Converting inventory slot " + inventorySlot + " to container slot " + containerSlot, true);
+                        logInfo("Converting inventory slot " + inventorySlot + " to container slot " + containerSlot,
+                                true);
                         pair.manager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, pair.player);
                         pair.manager.clickSlot(0, chestplateArmorSlot, 0, SlotActionType.PICKUP, pair.player);
                         pair.manager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, pair.player);
@@ -287,7 +364,7 @@ public class ElytraSwap {
         }
         return inventorySlot;
     }
-    
+
     private static void activateElytra(MinecraftClient client) {
         Optional.ofNullable(client.player).ifPresent(player -> {
             try {
