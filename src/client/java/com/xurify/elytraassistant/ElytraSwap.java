@@ -36,7 +36,7 @@ public class ElytraSwap {
     private static long lastJumpTick = 0;
 
     private static final AirState airState = new AirState();
-        private static final CachedPlayerState cachedPlayerState = new CachedPlayerState();
+    private static final CachedPlayerState cachedPlayerState = new CachedPlayerState();
 
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(ElytraSwap::onClientTick);
@@ -45,15 +45,20 @@ public class ElytraSwap {
     private static void onClientTick(MinecraftClient client) {
         handleElytraToggleKeyPress(client);
 
-        if (!isValidTickState(client))
+        if (!isValidTickState(client)) {
             return;
+        }
 
         PlayerState playerState = cachedPlayerState.get(client);
-        if (playerState == null) return;
+
+        if (playerState == null) {
+            return;
+        }
 
         boolean hasElytraInInventory = hasElytraInInventory(client);
 
         airState.update(playerState, hasElytraInInventory);
+
         handleJumpKeyPress(playerState, client, hasElytraInInventory);
 
         if (hasElytraInInventory) {
@@ -86,14 +91,14 @@ public class ElytraSwap {
     }
 
     private static void handleJumpKeyPress(PlayerState state, MinecraftClient client, boolean hasElytraInInventory) {
-        if (state.areLogsEnabled && state.wasJumpKeyPressed && !prevTickJumpKeyPressed) {
+        if (state.wasJumpKeyPressed && !prevTickJumpKeyPressed) {
             logJumpDebugInfo(state);
         }
 
         if (hasElytraInInventory && !state.isOnGround && !state.isInFluid && state.wasJumpKeyPressed
                 && !prevTickJumpKeyPressed) {
             if (state.currentTick - lastJumpTick <= DOUBLE_JUMP_WINDOW) {
-                logInfo("Attempting to equip Elytra - Double Jump", state.areLogsEnabled);
+                logInfo("Attempting to equip Elytra - Double Jump");
                 tryEquipElytra(client, true);
             }
             lastJumpTick = state.currentTick;
@@ -123,10 +128,10 @@ public class ElytraSwap {
 
         boolean isGliding = state.isGliding;
         if (!state.isOnGround && state.hasBeenInAir && state.hasFallenEnough && !isGliding && state.wasJumpKeyPressed) {
-            logInfo("Attempting to equip Elytra - Significant Fall", state.areLogsEnabled);
+            logInfo("Attempting to equip Elytra - Significant Fall");
             tryEquipElytra(client, true);
         } else if (!state.isOnGround && state.isMovingUpFast && !isGliding && state.wasJumpKeyPressed) {
-            logInfo("Attempting to equip Elytra - Upward Boost", state.areLogsEnabled);
+            logInfo("Attempting to equip Elytra - Upward Boost");
             tryEquipElytra(client, true);
         }
     }
@@ -134,10 +139,8 @@ public class ElytraSwap {
     private static void handleLandingDetection(PlayerState state, MinecraftClient client) {
         if (!prevTickOnGround && state.isOnGround && state.hasBeenInAir) {
             if (hadArmorBeforeFlight) {
-                logInfo("Attempting to restore original armor - Land", state.areLogsEnabled);
+                logInfo("Attempting to restore original armor - Land");
                 tryRestoreOriginalChestplate(client);
-            } else {
-                logInfo("Landing detected but player had no armor before flight", state.areLogsEnabled);
             }
         }
 
@@ -148,7 +151,9 @@ public class ElytraSwap {
 
     private static boolean hasElytraInInventory(MinecraftClient client) {
         if (client.player == null) return false;
+
         int currentHash = calculateInventoryHash(client.player);
+
         if (currentHash != lastInventoryHash) {
             cachedHasElytra = checkForElytraInInventory(client);
             lastInventoryHash = currentHash;
@@ -201,7 +206,7 @@ public class ElytraSwap {
         Optional.ofNullable(client.player).ifPresent(player -> {
             ItemStack currentChest = player.getEquippedStack(EquipmentSlot.CHEST);
             if (isChestplate(currentChest)) {
-                logInfo("Already wearing a chestplate", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+                logInfo("Already wearing a chestplate");
                 return;
             }
 
@@ -209,7 +214,7 @@ public class ElytraSwap {
                 int originalChestSlot = findExactItemSlot(client, originalChestItem.getItem());
                 if (originalChestSlot != -1) {
                     swapItems(client, originalChestSlot);
-                    logInfo("Restored original chestplate", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+                    logInfo("Restored original chestplate");
                     return;
                 }
             }
@@ -219,7 +224,7 @@ public class ElytraSwap {
                     lastWornChestplate);
             if (chestplateSlot != -1) {
                 swapItems(client, chestplateSlot);
-                logInfo("Chestplate equipped (fallback)", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+                logInfo("Chestplate equipped (fallback)");
             }
         });
     }
@@ -257,7 +262,7 @@ public class ElytraSwap {
                 if (shouldActivate) {
                     activateElytra(client);
                 }
-                logInfo("Elytra equipped and activated", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+                logInfo("Elytra equipped and activated");
             }
         });
     }
@@ -266,19 +271,19 @@ public class ElytraSwap {
         Optional.ofNullable(client.player).ifPresent(player -> {
             ItemStack currentChest = player.getEquippedStack(EquipmentSlot.CHEST);
             if (isChestplate(currentChest)) {
-                logInfo("Already wearing a chestplate", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+                logInfo("Already wearing a chestplate");
                 return;
             }
 
             int chestplateSlot = findItemSlot(client,
                     item -> {
-                        logInfo("Looking for chestplate...", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+                        logInfo("Looking for chestplate...");
                         return isChestplate(item.getDefaultStack());
                     },
                     lastWornChestplate);
             if (chestplateSlot != -1) {
                 swapItems(client, chestplateSlot);
-                logInfo("Chestplate equipped", ElytraAssistant.CONFIG.debugSettings.enableLogs);
+                logInfo("Chestplate equipped");
             }
         });
     }
@@ -318,7 +323,7 @@ public class ElytraSwap {
 
     private static void swapItems(MinecraftClient client, int inventorySlot) {
         if (client.player == null || client.interactionManager == null) {
-            logError("Cannot swap items: client state invalid", null, true);
+            logError("Cannot swap items: client state invalid", null);
             return;
         }
 
@@ -328,14 +333,11 @@ public class ElytraSwap {
 
         ClientPlayerEntity player = client.player;
         ClientPlayerInteractionManager manager = client.interactionManager;
-        boolean areLogsEnabled = ElytraAssistant.CONFIG.debugSettings.enableLogs;
 
         ItemStack currentChestSlot = player.getInventory().getStack(inventorySlot);
 
-        if (areLogsEnabled) {
-            logInfoFormat(true, "Current swap slot: %d Item: %s", 
-                    inventorySlot, currentChestSlot.getName().getString());
-        }
+        logInfoFormat("Current swap slot: %d Item: %s",
+                inventorySlot, currentChestSlot.getName().getString());
 
         if (currentChestSlot.getItem() == Items.ELYTRA) {
             lastWornElytra = currentChestSlot.copy();
@@ -346,18 +348,16 @@ public class ElytraSwap {
         try {
             int containerSlot = inventoryToContainerSlot(inventorySlot);
 
-            if (areLogsEnabled) {
-                logInfoFormat(true, "Converting inventory slot %d to container slot %d", 
-                        inventorySlot, containerSlot);
-            }
+            logInfoFormat("Converting inventory slot %d to container slot %d",
+                    inventorySlot, containerSlot);
 
             manager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, player);
             manager.clickSlot(0, CHESTPLATE_ARMOR_SLOT, 0, SlotActionType.PICKUP, player);
             manager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, player);
 
-            logInfo("Swapped items in inventory", areLogsEnabled);
+            logInfo("Swapped items in inventory");
         } catch (NullPointerException exception) {
-            logError("Error swapping items", exception, areLogsEnabled);
+            logError("Error swapping items", exception);
         }
     }
 
@@ -379,69 +379,65 @@ public class ElytraSwap {
                 if (client.getNetworkHandler() != null) {
                     client.getNetworkHandler().sendPacket(
                             new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
-                    // player.getAbilities().flying = false;
                 }
             } catch (NullPointerException exception) {
-                logError("Error activating Elytra", exception, ElytraAssistant.CONFIG.debugSettings.enableLogs);
+                logError("Error activating Elytra", exception);
             }
         });
     }
 
-    private static void logInfo(String message, boolean enableDebug) {
-        if (enableDebug) {
+    private static void logInfo(String message) {
+        if (ElytraAssistant.CONFIG.debugSettings.enableLogs) {
             ElytraAssistant.LOGGER.info(message);
         }
     }
 
-    private static void logInfoFormat(boolean enableDebug, String format, Object... args) {
-        if (enableDebug) {
+    private static void logInfoFormat(String format, Object... args) {
+        if (ElytraAssistant.CONFIG.debugSettings.enableLogs) {
             ElytraAssistant.LOGGER.info(String.format(format, args));
         }
     }
 
-    private static void logError(String message, Exception e, boolean enableDebug) {
-        if (enableDebug) {
+    private static void logError(String message, Exception e) {
+        if (ElytraAssistant.CONFIG.debugSettings.enableLogs) {
             ElytraAssistant.LOGGER.error(message, e);
         }
     }
 
     private static void logJumpDebugInfo(PlayerState state) {
-        if (!state.areLogsEnabled)
-            return;
-
-        logInfo("===========================", true);
-        logInfo("Jump key pressed. Debug info:", true);
-        logInfo("On ground: " + state.isOnGround, true);
-        logInfo("Previous tick on ground: " + prevTickOnGround, true);
-        logInfo("Air ticks: " + airState.getAirTicks(), true);
-        logInfo("Last jump tick: " + lastJumpTick, true);
-        logInfo("Current tick: " + state.currentTick, true);
-        logInfo("Vertical velocity: " + state.player.getVelocity().y, true);
-        logInfo("Fall distance: " + state.player.fallDistance, true);
-        logInfo("Has been in air: " + state.hasBeenInAir, true);
-        logInfo("Is moving down: " + state.isMovingDown, true);
-        logInfo("Is moving up fast: " + state.isMovingUpFast, true);
-        logInfo("Has fallen enough: " + state.hasFallenEnough, true);
-        logInfo("Is climbing: " + state.isClimbing, true);
-        logInfo("Is in fluid: " + state.isInFluid, true);
-        logInfo("Was recently in airborne: " + state.wasRecentlyAirborne, true);
-        logInfo("Is submerged in water: " + state.isSubmergedInWater, true);
-        logInfo("Is swimming: " + state.isSwimming, true);
-        logInfo("Is fall flying: " + state.player.getAbilities().flying, true);
-        logInfo("isRunning: " + state.isRunning, true);
-        logInfo("prevTickJumpKeyPressed: " + prevTickJumpKeyPressed, true);
-        logInfo("ticksSinceGrounded: " + airState.getTicksSinceGrounded(), true);
-        logInfo("player.getVelocity().y: " + state.player.getVelocity().y, true);
-        logInfo("Current chest item: " + state.player.getEquippedStack(EquipmentSlot.CHEST).getItem().toString(), true);
+        logInfo("===========================");
+        logInfo("Jump key pressed. Debug info:");
+        logInfo("On ground: " + state.isOnGround);
+        logInfo("Previous tick on ground: " + prevTickOnGround);
+        logInfo("Air ticks: " + airState.getAirTicks());
+        logInfo("Last jump tick: " + lastJumpTick);
+        logInfo("Current tick: " + state.currentTick);
+        logInfo("Vertical velocity: " + state.player.getVelocity().y);
+        logInfo("Fall distance: " + state.player.fallDistance);
+        logInfo("Has been in air: " + state.hasBeenInAir);
+        logInfo("Is moving down: " + state.isMovingDown);
+        logInfo("Is moving up fast: " + state.isMovingUpFast);
+        logInfo("Has fallen enough: " + state.hasFallenEnough);
+        logInfo("Is climbing: " + state.isClimbing);
+        logInfo("Is in fluid: " + state.isInFluid);
+        logInfo("Was recently in airborne: " + state.wasRecentlyAirborne);
+        logInfo("Is submerged in water: " + state.isSubmergedInWater);
+        logInfo("Is swimming: " + state.isSwimming);
+        logInfo("Is fall flying: " + state.player.getAbilities().flying);
+        logInfo("isRunning: " + state.isRunning);
+        logInfo("prevTickJumpKeyPressed: " + prevTickJumpKeyPressed);
+        logInfo("ticksSinceGrounded: " + airState.getTicksSinceGrounded());
+        logInfo("player.getVelocity().y: " + state.player.getVelocity().y);
+        logInfo("Current chest item: " + state.player.getEquippedStack(EquipmentSlot.CHEST).getItem().toString());
     }
 
     private static void logMidAirActivationAttempt(PlayerState state) {
         if (state.isInMidAirBalance) {
-            logInfo("Attempting to equip Elytra - Mid-air Balance", state.areLogsEnabled);
+            logInfo("Attempting to equip Elytra - Mid-air Balance");
         } else if (state.isMovingDown) {
-            logInfo("Attempting to equip Elytra - Mid-air Falling", state.areLogsEnabled);
+            logInfo("Attempting to equip Elytra - Mid-air Falling");
         } else {
-            logInfo("Attempting to equip Elytra - Mid-air Rising", state.areLogsEnabled);
+            logInfo("Attempting to equip Elytra - Mid-air Rising");
         }
     }
 
@@ -449,7 +445,6 @@ public class ElytraSwap {
         final ClientPlayerEntity player;
         final MinecraftClient client;
         final long currentTick;
-        final boolean areLogsEnabled;
         final boolean wasJumpKeyPressed;
         final boolean wasRecentlyAirborne;
         final boolean isOnGround;
@@ -478,7 +473,6 @@ public class ElytraSwap {
                 throw new IllegalStateException("World is null");
             }
 
-            final boolean logsEnabled = ElytraAssistant.CONFIG.debugSettings.enableLogs;
             final double verticalVelocityThreshold = ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold / 1000.0;
             final double minFallDistance = ElytraAssistant.CONFIG.sensitivityTweaks.minFallDistance / 1000.0;
 
@@ -487,14 +481,13 @@ public class ElytraSwap {
             final double horizontalLength = velocity.horizontalLength();
 
             this.currentTick = client.world.getTime();
-            this.areLogsEnabled = logsEnabled;
+            this.wasJumpKeyPressed = client.options.jumpKey.isPressed();
+            this.wasRecentlyAirborne = airState.wasRecentlyAirborne();
             this.isOnGround = player.isOnGround();
             this.isInFluid = player.isInFluid() || player.isTouchingWater() || player.isSubmergedInWater();
             this.isSubmergedInWater = player.isSubmergedInWater();
             this.isSwimming = player.isSwimming();
             this.isClimbing = player.isClimbing();
-            this.wasJumpKeyPressed = client.options.jumpKey.isPressed();
-            this.wasRecentlyAirborne = airState.wasRecentlyAirborne();
             this.isRunning = player.isSprinting() && horizontalLength > RUNNING_VELOCITY_THRESHOLD;
             this.hasBeenInAir = airState.hasBeenInAir();
             this.isInMidAirBalance = Math.abs(verticalVel) <= verticalVelocityThreshold;
@@ -524,10 +517,10 @@ public class ElytraSwap {
                 if (hasElytraInInventory && !isElytraEquipped(state.client) && wasInAir
                         && airTime > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold) {
                     if (hadArmorBeforeFlight) {
-                        logInfo("Landing detected. Attempting to equip Chestplate", state.areLogsEnabled);
+                        logInfo("Landing detected. Attempting to equip Chestplate");
                         tryRestoreOriginalChestplate(state.client);
                     } else {
-                        logInfo("Landing detected. Player had no armor before flight.", state.areLogsEnabled);
+                        logInfo("Landing detected. Player had no armor before flight.");
                     }
                     wasInAir = false;
                     airTime = 0;

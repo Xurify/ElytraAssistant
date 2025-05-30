@@ -96,6 +96,7 @@ public class DisableFireworkRocket {
             boolean isWearingElytra = player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA;
             boolean isHoldingFireworkRocket = heldItem.getItem() == Items.FIREWORK_ROCKET;
 
+            // TODO: Check if firework goes off when clicking Cake - when user is not hungry
 
             if (!isHoldingFireworkRocket) {
                 return ActionResult.PASS;
