@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.block.*;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.player.HungerManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ActionResult;
@@ -19,20 +19,20 @@ public class DisableFireworkRocket {
         INTERACTIVE_BLOCKS.add(DoorBlock.class);
         INTERACTIVE_BLOCKS.add(TrapdoorBlock.class);
         INTERACTIVE_BLOCKS.add(FenceGateBlock.class);
-        
+
         // Storage blocks - hand interaction (open GUI)
         INTERACTIVE_BLOCKS.add(ChestBlock.class);
         INTERACTIVE_BLOCKS.add(EnderChestBlock.class);
         INTERACTIVE_BLOCKS.add(ShulkerBoxBlock.class);
         INTERACTIVE_BLOCKS.add(BarrelBlock.class);
-        
+
         // Redstone components - hand interaction
         INTERACTIVE_BLOCKS.add(ButtonBlock.class);
         INTERACTIVE_BLOCKS.add(LeverBlock.class);
         INTERACTIVE_BLOCKS.add(RepeaterBlock.class);
         INTERACTIVE_BLOCKS.add(ComparatorBlock.class);
         INTERACTIVE_BLOCKS.add(DaylightDetectorBlock.class);
-        
+
         // Workstation blocks - hand interaction (open GUI)
         INTERACTIVE_BLOCKS.add(CraftingTableBlock.class);
         INTERACTIVE_BLOCKS.add(AnvilBlock.class);
@@ -48,19 +48,19 @@ public class DisableFireworkRocket {
         INTERACTIVE_BLOCKS.add(StonecutterBlock.class);
         INTERACTIVE_BLOCKS.add(SmithingTableBlock.class);
         INTERACTIVE_BLOCKS.add(FletchingTableBlock.class);
-        
+
         // Special blocks - hand interaction
         INTERACTIVE_BLOCKS.add(BeaconBlock.class);
         INTERACTIVE_BLOCKS.add(BedBlock.class);
         INTERACTIVE_BLOCKS.add(NoteBlock.class);
         INTERACTIVE_BLOCKS.add(CampfireBlock.class);
         INTERACTIVE_BLOCKS.add(ComposterBlock.class);
-        INTERACTIVE_BLOCKS.add(CakeBlock.class);
+        //INTERACTIVE_BLOCKS.add(CakeBlock.class);
         INTERACTIVE_BLOCKS.add(RespawnAnchorBlock.class);
         INTERACTIVE_BLOCKS.add(BellBlock.class);
         INTERACTIVE_BLOCKS.add(LecternBlock.class);
         INTERACTIVE_BLOCKS.add(DragonEggBlock.class);
-        
+
         // Berry blocks - hand interaction (harvest)
         INTERACTIVE_BLOCKS.add(SweetBerryBushBlock.class);
         INTERACTIVE_BLOCKS.add(CaveVinesBodyBlock.class);
@@ -69,13 +69,13 @@ public class DisableFireworkRocket {
         // Candles - hand interaction (light/extinguish)
         INTERACTIVE_BLOCKS.add(CandleBlock.class);
         INTERACTIVE_BLOCKS.add(CandleCakeBlock.class);
-        
+
         // Signs - hand interaction (edit text)
         INTERACTIVE_BLOCKS.add(SignBlock.class);
         INTERACTIVE_BLOCKS.add(WallSignBlock.class);
         INTERACTIVE_BLOCKS.add(HangingSignBlock.class);
         INTERACTIVE_BLOCKS.add(WallHangingSignBlock.class);
-        
+
         // Redstone machines - hand interaction (open GUI)
         INTERACTIVE_BLOCKS.add(HopperBlock.class);
         INTERACTIVE_BLOCKS.add(DispenserBlock.class);
@@ -95,24 +95,33 @@ public class DisableFireworkRocket {
             ItemStack heldItem = player.getStackInHand(hand);
             boolean isWearingElytra = player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA;
             boolean isHoldingFireworkRocket = heldItem.getItem() == Items.FIREWORK_ROCKET;
-
-            // TODO: Check if firework goes off when clicking Cake - when user is not hungry
+            boolean isDecorativeExplosionsWhileWearingElytraDisabled = ElytraAssistant.CONFIG.fireworkRockets.disableDecorativeExplosionsWhileWearingElytra;
+            boolean isDecorativeExplosionsCompletelyDisabled = ElytraAssistant.CONFIG.fireworkRockets.disableDecorativeExplosionsCompletely;
 
             if (!isHoldingFireworkRocket) {
                 return ActionResult.PASS;
             }
 
             Block block = world.getBlockState(hitResult.getBlockPos()).getBlock();
+
             if (isInteractiveBlock(block)) {
                 return ActionResult.PASS;
             }
 
-            if (ElytraAssistant.CONFIG.fireworkRockets.disableDecorativeExplosionsWhileWearingElytra
-                    && isWearingElytra) {
+            if ((isDecorativeExplosionsWhileWearingElytraDisabled || isDecorativeExplosionsCompletelyDisabled) && block instanceof CakeBlock) {
+                HungerManager hungerManager = player.getHungerManager();
+                if (hungerManager.isNotFull()) {
+                    return ActionResult.PASS;
+                } else {
+                    return ActionResult.FAIL;
+                }
+            }
+
+            if (isDecorativeExplosionsWhileWearingElytraDisabled && isWearingElytra) {
                 return ActionResult.FAIL;
             }
 
-            if (ElytraAssistant.CONFIG.fireworkRockets.disableDecorativeExplosionsCompletely) {
+            if (isDecorativeExplosionsCompletelyDisabled) {
                 return ActionResult.FAIL;
             }
 
