@@ -28,14 +28,11 @@ public class ElytraSwap {
     private static boolean hadArmorBeforeFlight = false;
     private static boolean prevTickOnGround = true;
     private static boolean prevTickJumpKeyPressed = false;
-    private static boolean wasInAir = false;
     private static boolean cachedHasElytra = false;
-    
     private static long lastInventoryCheck = 0;
-    private static int ticksSinceGrounded = 0;
-    private static int airTicks = 0;
     private static long lastJumpTick = 0;
-    private static int airTime = 0;
+
+    private static final AirState airState = new AirState();
 
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(ElytraSwap::onClientTick);
@@ -51,7 +48,7 @@ public class ElytraSwap {
 
         boolean hasElytraInInventory = hasElytraInInventory(client);
 
-        updateAirState(playerState, hasElytraInInventory);
+        airState.update(playerState, hasElytraInInventory);
         handleJumpKeyPress(playerState, client, hasElytraInInventory);
 
         if (hasElytraInInventory) {
@@ -75,36 +72,6 @@ public class ElytraSwap {
             isToggling = true;
             toggleElytraChestplate(client, true);
             isToggling = false;
-        }
-    }
-
-    private static void updateAirState(PlayerState state, boolean hasElytraInInventory) {
-        if (!state.isOnGround) {
-            airTicks++;
-            airTime++;
-            ticksSinceGrounded++;
-            wasInAir = true;
-        } else {
-            airTicks = 0;
-            ticksSinceGrounded = 0;
-            if (hasElytraInInventory && !isElytraEquipped(state.client) && wasInAir
-                    && airTime > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold) {
-
-                if (hadArmorBeforeFlight) {
-                    logInfo("Landing detected. Attempting to equip Chestplate", state.areLogsEnabled);
-                    tryRestoreOriginalChestplate(state.client);
-                } else {
-                    logInfo("Landing detected. Player had no armor before flight.", state.areLogsEnabled);
-                }
-                wasInAir = false;
-                airTime = 0;
-                originalChestItem = ItemStack.EMPTY;
-                hadArmorBeforeFlight = false;
-            }
-        }
-
-        if (state.isInFluid) {
-            airTicks = 0;
         }
     }
 
@@ -134,7 +101,7 @@ public class ElytraSwap {
         }
 
         if (!state.isOnGround && !state.isInFluid && !state.wasRecentlyAirborne && !state.isClimbing
-                && airTicks >= ElytraAssistant.CONFIG.sensitivityTweaks.midAirActivationThreshold
+                && airState.getAirTicks() >= ElytraAssistant.CONFIG.sensitivityTweaks.midAirActivationThreshold
                 && state.wasJumpKeyPressed && !state.player.getAbilities().flying) {
 
             logMidAirActivationAttempt(state);
@@ -182,7 +149,7 @@ public class ElytraSwap {
         }
         return cachedHasElytra;
     }
-    
+
     private static boolean checkForElytraInInventory(MinecraftClient client) {
         return Optional.ofNullable(client.player)
                 .map(player -> {
@@ -415,7 +382,7 @@ public class ElytraSwap {
         logInfo("Jump key pressed. Debug info:", true);
         logInfo("On ground: " + state.isOnGround, true);
         logInfo("Previous tick on ground: " + prevTickOnGround, true);
-        logInfo("Air ticks: " + airTicks, true);
+        logInfo("Air ticks: " + airState.getAirTicks(), true);
         logInfo("Last jump tick: " + lastJumpTick, true);
         logInfo("Current tick: " + state.currentTick, true);
         logInfo("Vertical velocity: " + state.player.getVelocity().y, true);
@@ -432,7 +399,7 @@ public class ElytraSwap {
         logInfo("Is fall flying: " + state.player.getAbilities().flying, true);
         logInfo("isRunning: " + state.isRunning, true);
         logInfo("prevTickJumpKeyPressed: " + prevTickJumpKeyPressed, true);
-        logInfo("ticksSinceGrounded: " + ticksSinceGrounded, true);
+        logInfo("ticksSinceGrounded: " + airState.getTicksSinceGrounded(), true);
         logInfo("player.getVelocity().y: " + state.player.getVelocity().y, true);
         logInfo("Current chest item: " + state.player.getEquippedStack(EquipmentSlot.CHEST).getItem().toString(), true);
     }
@@ -488,10 +455,10 @@ public class ElytraSwap {
             this.isSwimming = player.isSwimming();
             this.isClimbing = player.isClimbing();
             this.wasJumpKeyPressed = client.options.jumpKey.isPressed();
-            this.wasRecentlyAirborne = airTicks < RECENTLY_AIRBORNE_THRESHOLD;
+            this.wasRecentlyAirborne = airState.wasRecentlyAirborne();
             this.isRunning = player.isSprinting()
                     && player.getVelocity().horizontalLength() > RUNNING_VELOCITY_THRESHOLD;
-            this.hasBeenInAir = airTicks > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold;
+            this.hasBeenInAir = airState.hasBeenInAir();
             this.isInMidAirBalance = Math
                     .abs(player.getVelocity().y) <= ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold
                             / 1000.0;
@@ -504,6 +471,58 @@ public class ElytraSwap {
             this.hasFallenEnough = player.fallDistance > ElytraAssistant.CONFIG.sensitivityTweaks.minFallDistance
                     / 1000.0;
             this.isGliding = player.isGliding();
+        }
+    }
+
+    private static class AirState {
+        private int ticksSinceGrounded = 0;
+        private int airTicks = 0;
+        private int airTime = 0;
+        private boolean wasInAir = false;
+
+        public void update(PlayerState state, boolean hasElytraInInventory) {
+            if (!state.isOnGround) {
+                airTicks++;
+                airTime++;
+                ticksSinceGrounded++;
+                wasInAir = true;
+            } else {
+                airTicks = 0;
+                ticksSinceGrounded = 0;
+                if (hasElytraInInventory && !isElytraEquipped(state.client) && wasInAir
+                        && airTime > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold) {
+                    if (hadArmorBeforeFlight) {
+                        logInfo("Landing detected. Attempting to equip Chestplate", state.areLogsEnabled);
+                        tryRestoreOriginalChestplate(state.client);
+                    } else {
+                        logInfo("Landing detected. Player had no armor before flight.", state.areLogsEnabled);
+                    }
+                    wasInAir = false;
+                    airTime = 0;
+                    originalChestItem = ItemStack.EMPTY;
+                    hadArmorBeforeFlight = false;
+                }
+            }
+
+            if (state.isInFluid) {
+                airTicks = 0;
+            }
+        }
+
+        public int getAirTicks() {
+            return airTicks;
+        }
+
+        public boolean hasBeenInAir() {
+            return airTicks > ElytraAssistant.CONFIG.sensitivityTweaks.airTicksThreshold;
+        }
+
+        public boolean wasRecentlyAirborne() {
+            return airTicks < RECENTLY_AIRBORNE_THRESHOLD;
+        }
+
+        public int getTicksSinceGrounded() {
+            return ticksSinceGrounded;
         }
     }
 
