@@ -28,11 +28,13 @@ public class ElytraSwap {
     private static boolean hadArmorBeforeFlight = false;
     private static boolean prevTickOnGround = true;
     private static boolean prevTickJumpKeyPressed = false;
-
+    private static boolean wasInAir = false;
+    private static boolean cachedHasElytra = false;
+    
+    private static long lastInventoryCheck = 0;
     private static int ticksSinceGrounded = 0;
     private static int airTicks = 0;
     private static long lastJumpTick = 0;
-    private static boolean wasInAir = false;
     private static int airTime = 0;
 
     public static void init() {
@@ -173,6 +175,15 @@ public class ElytraSwap {
     }
 
     private static boolean hasElytraInInventory(MinecraftClient client) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastInventoryCheck > 100) {
+            cachedHasElytra = checkForElytraInInventory(client);
+            lastInventoryCheck = currentTime;
+        }
+        return cachedHasElytra;
+    }
+    
+    private static boolean checkForElytraInInventory(MinecraftClient client) {
         return Optional.ofNullable(client.player)
                 .map(player -> {
                     for (int i = 0; i < player.getInventory().size(); i++) {
@@ -322,6 +333,10 @@ public class ElytraSwap {
     }
 
     private static void swapItems(MinecraftClient client, int inventorySlot) {
+        if (client.player == null || client.interactionManager == null) {
+            logError("Cannot swap items: client state invalid", null, true);
+            return;
+        }
         Optional.ofNullable(client.player)
                 .flatMap(player -> Optional.ofNullable(client.interactionManager)
                         .map(manager -> new PlayerManagerPair(player, manager)))
