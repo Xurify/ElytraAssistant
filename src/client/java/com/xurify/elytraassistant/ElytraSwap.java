@@ -144,11 +144,11 @@ public class ElytraSwap {
             return;
         }
 
-        boolean isFlying = state.player.getAbilities().flying;
-        if (!state.isOnGround && state.hasBeenInAir && state.hasFallenEnough && !isFlying && state.wasJumpKeyPressed) {
+        boolean isGliding = state.isGliding;
+        if (!state.isOnGround && state.hasBeenInAir && state.hasFallenEnough && !isGliding && state.wasJumpKeyPressed) {
             logInfo("Attempting to equip Elytra - Significant Fall", state.areLogsEnabled);
             tryEquipElytra(client, true);
-        } else if (!state.isOnGround && state.isMovingUpFast && !isFlying && state.wasJumpKeyPressed) {
+        } else if (!state.isOnGround && state.isMovingUpFast && !isGliding && state.wasJumpKeyPressed) {
             logInfo("Attempting to equip Elytra - Upward Boost", state.areLogsEnabled);
             tryEquipElytra(client, true);
         }
@@ -434,22 +434,23 @@ public class ElytraSwap {
     private static class PlayerState {
         final ClientPlayerEntity player;
         final MinecraftClient client;
+        final long currentTick;
+        final boolean areLogsEnabled;
+        final boolean wasJumpKeyPressed;
+        final boolean wasRecentlyAirborne;
         final boolean isOnGround;
         final boolean isInFluid;
         final boolean isSubmergedInWater;
         final boolean isSwimming;
         final boolean isClimbing;
-        final boolean wasJumpKeyPressed;
-        final boolean wasRecentlyAirborne;
         final boolean isRunning;
+        final boolean isGliding;
         final boolean hasBeenInAir;
+        final boolean hasFallenEnough;
         final boolean isInMidAirBalance;
         final boolean isMovingDown;
         final boolean isMovingUp;
         final boolean isMovingUpFast;
-        final boolean hasFallenEnough;
-        final long currentTick;
-        final boolean areLogsEnabled;
 
         PlayerState(MinecraftClient client) {
             this.client = client;
@@ -463,6 +464,8 @@ public class ElytraSwap {
                 throw new IllegalStateException("World is null");
             }
 
+            this.currentTick = client.world.getTime();
+            this.areLogsEnabled = ElytraAssistant.CONFIG.debugSettings.enableLogs;
             this.isOnGround = player.isOnGround();
             this.isInFluid = player.isInFluid() || player.isTouchingWater() || player.isSubmergedInWater();
             this.isSubmergedInWater = player.isSubmergedInWater();
@@ -484,8 +487,7 @@ public class ElytraSwap {
                     .min(ElytraAssistant.CONFIG.sensitivityTweaks.verticalVelocityThreshold * 5, 1000) / 1000.0;
             this.hasFallenEnough = player.fallDistance > ElytraAssistant.CONFIG.sensitivityTweaks.minFallDistance
                     / 1000.0;
-            this.currentTick = client.world.getTime();
-            this.areLogsEnabled = ElytraAssistant.CONFIG.debugSettings.enableLogs;
+            this.isGliding = player.isGliding();
         }
     }
 
