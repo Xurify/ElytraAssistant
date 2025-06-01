@@ -550,17 +550,7 @@ public class ElytraSwap {
             return ticksSinceGrounded;
         }
     }
-
-    private static class PlayerManagerPair {
-        final ClientPlayerEntity player;
-        final ClientPlayerInteractionManager manager;
-
-        PlayerManagerPair(ClientPlayerEntity player, ClientPlayerInteractionManager manager) {
-            this.player = player;
-            this.manager = manager;
-        }
-    }
-
+    
     private static class CachedPlayerState {
         private long lastUpdateTick = -1;
         private PlayerState cachedState;
