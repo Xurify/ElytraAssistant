@@ -5,7 +5,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath 'net.fabricmc:fabric-loom:1.11.8'
+        classpath 'net.fabricmc:fabric-loom:1.13.6'
         classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
     }
 }

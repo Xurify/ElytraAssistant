@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "depends": {
-    "minecraft": ["1.21.10"],
+    "minecraft": ["1.21.11"],
     "fabric-api": "*",
     "java": ">=21",
     "fabricloader": ">=0.18.4",
