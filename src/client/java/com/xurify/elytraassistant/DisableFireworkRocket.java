@@ -3,7 +3,61 @@ package com.xurify.elytraassistant;
 import java.util.HashSet;
 import java.util.Set;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.block.*;
+import net.minecraft.block.AbstractFurnaceBlock;
+import net.minecraft.block.AnvilBlock;
+import net.minecraft.block.BarrelBlock;
+import net.minecraft.block.BeaconBlock;
+import net.minecraft.block.BedBlock;
+import net.minecraft.block.BellBlock;
+import net.minecraft.block.BlastFurnaceBlock;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.BrewingStandBlock;
+import net.minecraft.block.ButtonBlock;
+import net.minecraft.block.CakeBlock;
+import net.minecraft.block.CandleBlock;
+import net.minecraft.block.CandleCakeBlock;
+import net.minecraft.block.CartographyTableBlock;
+import net.minecraft.block.CaveVinesBodyBlock;
+import net.minecraft.block.CaveVinesHeadBlock;
+import net.minecraft.block.ChestBlock;
+import net.minecraft.block.ChiseledBookshelfBlock;
+import net.minecraft.block.CommandBlock;
+import net.minecraft.block.ComparatorBlock;
+import net.minecraft.block.ComposterBlock;
+import net.minecraft.block.CrafterBlock;
+import net.minecraft.block.CraftingTableBlock;
+import net.minecraft.block.DaylightDetectorBlock;
+import net.minecraft.block.DispenserBlock;
+import net.minecraft.block.DoorBlock;
+import net.minecraft.block.DragonEggBlock;
+import net.minecraft.block.DropperBlock;
+import net.minecraft.block.EnchantingTableBlock;
+import net.minecraft.block.EnderChestBlock;
+import net.minecraft.block.FenceGateBlock;
+import net.minecraft.block.FlowerPotBlock;
+import net.minecraft.block.FurnaceBlock;
+import net.minecraft.block.GrindstoneBlock;
+import net.minecraft.block.HangingSignBlock;
+import net.minecraft.block.HopperBlock;
+import net.minecraft.block.JigsawBlock;
+import net.minecraft.block.JukeboxBlock;
+import net.minecraft.block.LecternBlock;
+import net.minecraft.block.LeverBlock;
+import net.minecraft.block.LoomBlock;
+import net.minecraft.block.NoteBlock;
+import net.minecraft.block.RepeaterBlock;
+import net.minecraft.block.ShelfBlock;
+import net.minecraft.block.ShulkerBoxBlock;
+import net.minecraft.block.SignBlock;
+import net.minecraft.block.SmithingTableBlock;
+import net.minecraft.block.SmokerBlock;
+import net.minecraft.block.StonecutterBlock;
+import net.minecraft.block.StructureBlock;
+import net.minecraft.block.SweetBerryBushBlock;
+import net.minecraft.block.TrapdoorBlock;
+import net.minecraft.block.WallHangingSignBlock;
+import net.minecraft.block.WallSignBlock;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.HungerManager;
 import net.minecraft.item.ItemStack;
@@ -56,10 +110,8 @@ public class DisableFireworkRocket {
     INTERACTIVE_BLOCKS.add(BeaconBlock.class);
     INTERACTIVE_BLOCKS.add(BedBlock.class);
     INTERACTIVE_BLOCKS.add(NoteBlock.class);
-    INTERACTIVE_BLOCKS.add(CampfireBlock.class);
     INTERACTIVE_BLOCKS.add(ComposterBlock.class);
     // INTERACTIVE_BLOCKS.add(CakeBlock.class);
-    INTERACTIVE_BLOCKS.add(RespawnAnchorBlock.class);
     INTERACTIVE_BLOCKS.add(BellBlock.class);
     INTERACTIVE_BLOCKS.add(LecternBlock.class);
     INTERACTIVE_BLOCKS.add(DragonEggBlock.class);
@@ -84,11 +136,10 @@ public class DisableFireworkRocket {
     INTERACTIVE_BLOCKS.add(DispenserBlock.class);
     INTERACTIVE_BLOCKS.add(DropperBlock.class);
 
-    // Decorative interactive blocks
-    INTERACTIVE_BLOCKS.add(DecoratedPotBlock.class);
-
-    // Trial Chambers (1.21+) - right-click to use (e.g. vault with key)
-    INTERACTIVE_BLOCKS.add(VaultBlock.class);
+    // Blocks - insert/take or take/place on right-click (empty hand works)
+    INTERACTIVE_BLOCKS.add(JukeboxBlock.class);
+    INTERACTIVE_BLOCKS.add(ChiseledBookshelfBlock.class);
+    INTERACTIVE_BLOCKS.add(FlowerPotBlock.class);
 
     // Creative/command blocks - hand interaction (open GUI)
     INTERACTIVE_BLOCKS.add(StructureBlock.class);
