@@ -39,6 +39,11 @@ Once installed, the mod works automatically:
 
 (If your mod has configurable options, describe how to access and modify them here.)
 
+## Development
+
+- **Build:** `./gradlew build` (or `gradlew.bat build` on Windows)
+- **Formatting:** The project uses [Spotless](https://github.com/diffplug/spotless) for Java and JSON. If the build fails on `spotlessJsonCheck` or `spotlessJavaCheck`, run `./gradlew spotlessApply` and try again.
+
 ## Compatibility
 
 Elytra Assistant is a client-side mod and should be compatible with most Minecraft servers, including vanilla servers. However, always check server rules regarding the use of client-side mods.

@@ -1,12 +1,12 @@
 {
   "text.autoconfig.elytraassistant.option.fireworkRockets": "Firework Rockets",
   "text.autoconfig.elytraassistant.option.fireworkRockets.disableDecorativeExplosionsCompletely": "Restrict rockets to Elytra flight only",
-  "text.autoconfig.elytraassistant.option.fireworkRockets.disableDecorativeExplosionsWhileWearingElytra": "When wearing Elytra: rockets for flight only",
   "text.autoconfig.elytraassistant.option.sensitivityTweaks.airTicksThreshold.@Tooltip": "Number of ticks in air before Elytra can activate",
   "text.autoconfig.elytraassistant.option.displaySettings": "Display Settings",
   "text.autoconfig.elytraassistant.option.elytraActivationSettings.autoElytraEnabled": "Auto Elytra Enabled",
   "text.autoconfig.elytraassistant.option.sensitivityTweaks.minFallDistance": "Minimum Fall Distance",
   "text.autoconfig.elytraassistant.title": "Elytra Assistant Configuration",
+  "text.autoconfig.elytraassistant.option.fireworkRockets.disableDecorativeExplosionsWhileWearingElytra": "When wearing Elytra: rockets for flight only",
   "text.autoconfig.elytraassistant.option.debugSettings.enableLogs": "Enable debug logs",
   "text.autoconfig.elytraassistant.option.sensitivityTweaks.verticalVelocityThreshold.@Tooltip": "Vertical velocity threshold for Elytra activation (lower is more sensitive)",
   "text.autoconfig.elytraassistant.option.sensitivityTweaks.minFallDistance.@Tooltip": "Minimum fall distance for Elytra activation",
