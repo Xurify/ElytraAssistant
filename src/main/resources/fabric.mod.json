@@ -1,47 +1,35 @@
 {
-	"schemaVersion": 1,
-	"id": "elytraassistant",
-	"version": "${version}",
-	"name": "Elytra Assistant",
-	"description": "Automatically swaps to Elytra/Chestplate when taking off or landing + other small Elytra-related things",
-	"authors": [
-		"Xurify"
-	],
-	"contact": {
-		"homepage": "https://xurify.com/projects/minecraft/elytra-assistant",
-		"sources": "https://github.com/Xurify/ElytraAssistant"
-	},
-	"license": "CC0-1.0",
-	"icon": "assets/elytraassistant/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"com.xurify.elytraassistant.ElytraAssistant"
-		],
-		"client": [
-			"com.xurify.elytraassistant.ElytraAssistantClient"
-		],
-		"modmenu": [
-			"com.xurify.elytraassistant.ModMenuIntegration"
-		]
-	},
-	"mixins": [
-		"elytraassistant.mixins.json",
-		{
-			"config": "elytraassistant.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.18.4",
-		"minecraft": [
-			"1.21.9"
-		],
-		"java": ">=21",
-		"fabric-api": "*",
-		"cloth-config": ">=19.0.147"
-	},
-	"suggests": {
-		"modmenu": ">=15.0.0-beta.3"
-	}
+  "schemaVersion": 1,
+  "depends": {
+    "minecraft": ["1.21.9"],
+    "fabric-api": "*",
+    "java": ">=21",
+    "fabricloader": ">=0.18.4",
+    "cloth-config": ">=19.0.147"
+  },
+  "icon": "assets/elytraassistant/icon.png",
+  "description": "Automatically swaps to Elytra/Chestplate when taking off or landing + other small Elytra-related things",
+  "version": "${version}",
+  "license": "CC0-1.0",
+  "suggests": {"modmenu": ">=15.0.0-beta.3"},
+  "environment": "*",
+  "mixins": [
+    "elytraassistant.mixins.json",
+    {
+      "environment": "client",
+      "config": "elytraassistant.client.mixins.json"
+    }
+  ],
+  "contact": {
+    "sources": "https://github.com/Xurify/ElytraAssistant",
+    "homepage": "https://xurify.com/projects/minecraft/elytra-assistant"
+  },
+  "name": "Elytra Assistant",
+  "entrypoints": {
+    "modmenu": ["com.xurify.elytraassistant.ModMenuIntegration"],
+    "client": ["com.xurify.elytraassistant.ElytraAssistantClient"],
+    "main": ["com.xurify.elytraassistant.ElytraAssistant"]
+  },
+  "id": "elytraassistant",
+  "authors": ["Xurify"]
 }

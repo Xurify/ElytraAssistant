@@ -6,17 +6,18 @@ import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class ModKeybindings {
-    private static final KeyBinding.Category ELYTRASSISTANT_CATEGORY =
-            KeyBinding.Category.create(Identifier.of("elytraassistant", "general"));
+  private static final KeyBinding.Category ELYTRASSISTANT_CATEGORY =
+      KeyBinding.Category.create(Identifier.of("elytraassistant", "general"));
 
-    public static KeyBinding elytraToggleKeyBinding;
+  public static KeyBinding elytraToggleKeyBinding;
 
-    public static void register() {
-        elytraToggleKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+  public static void register() {
+    elytraToggleKeyBinding =
+        KeyBindingHelper.registerKeyBinding(
+            new KeyBinding(
                 "key.elytraassistant.elytra_toggle",
                 GLFW.GLFW_KEY_GRAVE_ACCENT,
-                ELYTRASSISTANT_CATEGORY
-        ));
-        ElytraAssistant.LOGGER.info("Elytra toggle key binding registered");
-    }
+                ELYTRASSISTANT_CATEGORY));
+    ElytraAssistant.LOGGER.info("Elytra toggle key binding registered");
+  }
 }

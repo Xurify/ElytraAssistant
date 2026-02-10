@@ -17,6 +17,10 @@ spotless {
     java {
         googleJavaFormat()
     }
+    json {
+        target 'src/**/*.json'
+        simple().indentWithSpaces(2)
+    }
 }
 
 version = project.mod_version
