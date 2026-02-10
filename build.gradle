@@ -2,13 +2,22 @@ buildscript {
     repositories {
         maven { url = 'https://maven.fabricmc.net/' }
         mavenCentral()
+        gradlePluginPortal()
     }
     dependencies {
         classpath 'net.fabricmc:fabric-loom:1.11.8'
+        classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
     }
 }
 apply plugin: 'fabric-loom'
 apply plugin: 'maven-publish'
+apply plugin: 'com.diffplug.spotless'
+
+spotless {
+    java {
+        googleJavaFormat()
+    }
+}
 
 version = project.mod_version
 group = project.maven_group
