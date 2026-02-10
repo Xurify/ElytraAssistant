@@ -25,6 +25,7 @@ public class DisableFireworkRocket {
         INTERACTIVE_BLOCKS.add(EnderChestBlock.class);
         INTERACTIVE_BLOCKS.add(ShulkerBoxBlock.class);
         INTERACTIVE_BLOCKS.add(BarrelBlock.class);
+        INTERACTIVE_BLOCKS.add(ShelfBlock.class); // 1.21.9+ shelf (item display, right-click to interact)
 
         // Redstone components - hand interaction
         INTERACTIVE_BLOCKS.add(ButtonBlock.class);
@@ -35,6 +36,7 @@ public class DisableFireworkRocket {
 
         // Workstation blocks - hand interaction (open GUI)
         INTERACTIVE_BLOCKS.add(CraftingTableBlock.class);
+        INTERACTIVE_BLOCKS.add(CrafterBlock.class); // 1.21+ auto-crafter, right-click opens GUI
         INTERACTIVE_BLOCKS.add(AnvilBlock.class);
         INTERACTIVE_BLOCKS.add(AbstractFurnaceBlock.class);
         INTERACTIVE_BLOCKS.add(FurnaceBlock.class);
@@ -47,7 +49,7 @@ public class DisableFireworkRocket {
         INTERACTIVE_BLOCKS.add(GrindstoneBlock.class);
         INTERACTIVE_BLOCKS.add(StonecutterBlock.class);
         INTERACTIVE_BLOCKS.add(SmithingTableBlock.class);
-        INTERACTIVE_BLOCKS.add(FletchingTableBlock.class);
+        // Fletching table: in 1.21.9 Yarn there is no FletchingTableBlock class (Blocks.FLETCHING_TABLE still exists); handled by identity in isInteractiveBlock
 
         // Special blocks - hand interaction
         INTERACTIVE_BLOCKS.add(BeaconBlock.class);
@@ -83,6 +85,9 @@ public class DisableFireworkRocket {
 
         // Decorative interactive blocks
         INTERACTIVE_BLOCKS.add(DecoratedPotBlock.class);
+
+        // Trial Chambers (1.21+) - right-click to use (e.g. vault with key)
+        INTERACTIVE_BLOCKS.add(VaultBlock.class);
 
         // Creative/command blocks - hand interaction (open GUI)
         INTERACTIVE_BLOCKS.add(StructureBlock.class);
@@ -130,6 +135,10 @@ public class DisableFireworkRocket {
     }
 
     private static boolean isInteractiveBlock(Block block) {
+        // Fletching table: no FletchingTableBlock class in 1.21.9 Yarn; check by block identity
+        if (block == Blocks.FLETCHING_TABLE) {
+            return true;
+        }
         return INTERACTIVE_BLOCKS.stream().anyMatch(blockClass -> blockClass.isInstance(block));
     }
 }
