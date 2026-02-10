@@ -19,6 +19,7 @@
   "text.autoconfig.elytraassistant.option.sensitivityTweaks.midAirActivationThreshold": "Mid-air Activation Threshold",
   "text.autoconfig.elytraassistant.option.fireworkRockets.disableDecorativeExplosionsWhileWearingElytra.@Tooltip": "While Elytra is equipped, block using rockets for decoration; only Elytra boost is allowed",
   "text.autoconfig.elytraassistant.option.elytraActivationSettings": "Elytra Activation Settings",
+  "key.category.elytraassistant.general": "Elytra Assistant",
   "key.elytraassistant.elytra_toggle": "Toggle Elytra/Chestplate",
   "text.autoconfig.elytraassistant.option.sensitivityTweaks.midAirActivationThreshold.@Tooltip": "Minimum number of ticks in air before mid-air Elytra activation is allowed",
   "text.autoconfig.elytraassistant.option.fireworkRockets.disableDecorativeExplosionsCompletely.@Tooltip": "Block using firework rockets for decoration in all situations; only Elytra boost is allowed",
