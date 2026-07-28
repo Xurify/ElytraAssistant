@@ -4,15 +4,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
-import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.Vec3;
 
 public class ElytraSwap {
   private static final int RECENTLY_AIRBORNE_THRESHOLD = 10;
@@ -41,7 +42,7 @@ public class ElytraSwap {
     ClientTickEvents.END_CLIENT_TICK.register(ElytraSwap::onClientTick);
   }
 
-  private static void onClientTick(MinecraftClient client) {
+  private static void onClientTick(Minecraft client) {
     handleElytraToggleKeyPress(client);
 
     if (!isValidTickState(client)) {
@@ -69,15 +70,15 @@ public class ElytraSwap {
     updatePreviousTickState(playerState);
   }
 
-  private static boolean isValidTickState(MinecraftClient client) {
+  private static boolean isValidTickState(Minecraft client) {
     return Optional.ofNullable(client.player)
-        .flatMap(player -> Optional.ofNullable(client.world))
+        .flatMap(player -> Optional.ofNullable(client.level))
         .map(world -> ElytraAssistant.CONFIG.elytraActivationSettings.autoElytraEnabled)
         .orElse(false);
   }
 
-  private static void handleElytraToggleKeyPress(MinecraftClient client) {
-    if (ModKeybindings.elytraToggleKeyBinding.wasPressed() && !isToggling) {
+  private static void handleElytraToggleKeyPress(Minecraft client) {
+    if (ModKeybindings.elytraToggleKeyBinding.consumeClick() && !isToggling) {
       isToggling = true;
       toggleElytraChestplate(client, true);
       isToggling = false;
@@ -90,7 +91,7 @@ public class ElytraSwap {
   }
 
   private static void handleJumpKeyPress(
-      PlayerState state, MinecraftClient client, boolean hasElytraInInventory) {
+      PlayerState state, Minecraft client, boolean hasElytraInInventory) {
     if (state.wasJumpKeyPressed && !prevTickJumpKeyPressed) {
       logJumpDebugInfo(state);
     }
@@ -108,7 +109,7 @@ public class ElytraSwap {
     }
   }
 
-  private static void handleMidAirActivation(PlayerState state, MinecraftClient client) {
+  private static void handleMidAirActivation(PlayerState state, Minecraft client) {
     if (state.currentTick - lastJumpTick <= DOUBLE_JUMP_WINDOW) {
       return;
     }
@@ -129,7 +130,7 @@ public class ElytraSwap {
     }
   }
 
-  private static void handleFallingDetection(PlayerState state, MinecraftClient client) {
+  private static void handleFallingDetection(PlayerState state, Minecraft client) {
     if (state.currentTick - lastJumpTick <= DOUBLE_JUMP_WINDOW) {
       return;
     }
@@ -148,7 +149,7 @@ public class ElytraSwap {
     }
   }
 
-  private static void handleLandingDetection(PlayerState state, MinecraftClient client) {
+  private static void handleLandingDetection(PlayerState state, Minecraft client) {
     if (!prevTickOnGround && state.isOnGround && state.hasBeenInAir) {
       if (hadArmorBeforeFlight) {
         logInfo("Attempting to restore original armor - Land");
@@ -161,7 +162,7 @@ public class ElytraSwap {
     }
   }
 
-  private static boolean hasElytraInInventory(MinecraftClient client) {
+  private static boolean hasElytraInInventory(Minecraft client) {
     if (client.player == null) return false;
 
     int currentHash = calculateInventoryHash(client.player);
@@ -173,10 +174,10 @@ public class ElytraSwap {
     return cachedHasElytra;
   }
 
-  private static int calculateInventoryHash(ClientPlayerEntity player) {
+  private static int calculateInventoryHash(LocalPlayer player) {
     int hash = 7;
-    for (int i = 0; i < player.getInventory().size(); i++) {
-      ItemStack stack = player.getInventory().getStack(i);
+    for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+      ItemStack stack = player.getInventory().getItem(i);
       if (!stack.isEmpty()) {
         hash = 31 * hash + stack.getItem().hashCode();
       }
@@ -184,12 +185,12 @@ public class ElytraSwap {
     return hash;
   }
 
-  private static boolean checkForElytraInInventory(MinecraftClient client) {
+  private static boolean checkForElytraInInventory(Minecraft client) {
     return Optional.ofNullable(client.player)
         .map(
             player -> {
-              for (int i = 0; i < player.getInventory().size(); i++) {
-                if (player.getInventory().getStack(i).getItem() == Items.ELYTRA) {
+              for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                if (player.getInventory().getItem(i).getItem() == Items.ELYTRA) {
                   return true;
                 }
               }
@@ -198,18 +199,17 @@ public class ElytraSwap {
         .orElse(false);
   }
 
-  private static boolean isElytraEquipped(MinecraftClient client) {
+  private static boolean isElytraEquipped(Minecraft client) {
     return Optional.ofNullable(client.player)
-        .map(player -> player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA)
+        .map(player -> player.getItemBySlot(EquipmentSlot.CHEST).getItem() == Items.ELYTRA)
         .orElse(false);
   }
 
-  public static void toggleElytraChestplate(
-      MinecraftClient client, boolean shouldAutoActivateElytra) {
+  public static void toggleElytraChestplate(Minecraft client, boolean shouldAutoActivateElytra) {
     Optional.ofNullable(client.player)
         .ifPresent(
             player -> {
-              ItemStack chestItem = player.getEquippedStack(EquipmentSlot.CHEST);
+              ItemStack chestItem = player.getItemBySlot(EquipmentSlot.CHEST);
               if (isChestplate(chestItem)) {
                 tryEquipElytra(client, shouldAutoActivateElytra);
               } else if (isElytra(chestItem)) {
@@ -218,11 +218,11 @@ public class ElytraSwap {
             });
   }
 
-  private static void tryRestoreOriginalChestplate(MinecraftClient client) {
+  private static void tryRestoreOriginalChestplate(Minecraft client) {
     Optional.ofNullable(client.player)
         .ifPresent(
             player -> {
-              ItemStack currentChest = player.getEquippedStack(EquipmentSlot.CHEST);
+              ItemStack currentChest = player.getItemBySlot(EquipmentSlot.CHEST);
               if (isChestplate(currentChest)) {
                 logInfo("Already wearing a chestplate");
                 return;
@@ -239,7 +239,7 @@ public class ElytraSwap {
 
               int chestplateSlot =
                   findItemSlot(
-                      client, item -> isChestplate(item.getDefaultStack()), lastWornChestplate);
+                      client, item -> isChestplate(item.getDefaultInstance()), lastWornChestplate);
               if (chestplateSlot != -1) {
                 swapItems(client, chestplateSlot);
                 logInfo("Chestplate equipped (fallback)");
@@ -261,11 +261,11 @@ public class ElytraSwap {
     return CHESTPLATE_ITEMS.contains(stack.getItem());
   }
 
-  public static void tryEquipElytra(MinecraftClient client, boolean shouldActivate) {
+  public static void tryEquipElytra(Minecraft client, boolean shouldActivate) {
     Optional.ofNullable(client.player)
         .ifPresent(
             player -> {
-              ItemStack currentChest = player.getEquippedStack(EquipmentSlot.CHEST);
+              ItemStack currentChest = player.getItemBySlot(EquipmentSlot.CHEST);
               if (currentChest.getItem() == Items.ELYTRA) return;
 
               if (!currentChest.isEmpty()) {
@@ -287,11 +287,11 @@ public class ElytraSwap {
             });
   }
 
-  public static void tryEquipChestplate(MinecraftClient client) {
+  public static void tryEquipChestplate(Minecraft client) {
     Optional.ofNullable(client.player)
         .ifPresent(
             player -> {
-              ItemStack currentChest = player.getEquippedStack(EquipmentSlot.CHEST);
+              ItemStack currentChest = player.getItemBySlot(EquipmentSlot.CHEST);
               if (isChestplate(currentChest)) {
                 logInfo("Already wearing a chestplate");
                 return;
@@ -302,7 +302,7 @@ public class ElytraSwap {
                       client,
                       item -> {
                         logInfo("Looking for chestplate...");
-                        return isChestplate(item.getDefaultStack());
+                        return isChestplate(item.getDefaultInstance());
                       },
                       lastWornChestplate);
               if (chestplateSlot != -1) {
@@ -313,7 +313,7 @@ public class ElytraSwap {
   }
 
   private static int findItemSlot(
-      MinecraftClient client, Predicate<Item> itemPredicate, ItemStack preferredItem) {
+      Minecraft client, Predicate<Item> itemPredicate, ItemStack preferredItem) {
     return Optional.ofNullable(client.player)
         .map(
             player -> {
@@ -322,8 +322,8 @@ public class ElytraSwap {
                 if (preferredSlot != -1) return preferredSlot;
               }
 
-              for (int i = 0; i < player.getInventory().size(); i++) {
-                ItemStack stack = player.getInventory().getStack(i);
+              for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                ItemStack stack = player.getInventory().getItem(i);
                 if (itemPredicate.test(stack.getItem())) {
                   return i;
                 }
@@ -333,12 +333,12 @@ public class ElytraSwap {
         .orElse(-1);
   }
 
-  private static int findExactItemSlot(MinecraftClient client, Item item) {
+  private static int findExactItemSlot(Minecraft client, Item item) {
     return Optional.ofNullable(client.player)
         .map(
             player -> {
-              for (int i = 0; i < player.getInventory().size(); i++) {
-                if (player.getInventory().getStack(i).getItem() == item) {
+              for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                if (player.getInventory().getItem(i).getItem() == item) {
                   return i;
                 }
               }
@@ -347,8 +347,8 @@ public class ElytraSwap {
         .orElse(-1);
   }
 
-  private static void swapItems(MinecraftClient client, int inventorySlot) {
-    if (client.player == null || client.interactionManager == null) {
+  private static void swapItems(Minecraft client, int inventorySlot) {
+    if (client.player == null || client.gameMode == null) {
       logError("Cannot swap items: client state invalid", null);
       return;
     }
@@ -357,13 +357,14 @@ public class ElytraSwap {
       return;
     }
 
-    ClientPlayerEntity player = client.player;
-    ClientPlayerInteractionManager manager = client.interactionManager;
+    LocalPlayer player = client.player;
+    MultiPlayerGameMode manager = client.gameMode;
 
-    ItemStack currentChestSlot = player.getInventory().getStack(inventorySlot);
+    ItemStack currentChestSlot = player.getInventory().getItem(inventorySlot);
 
     logInfoFormat(
-        "Current swap slot: %d Item: %s", inventorySlot, currentChestSlot.getName().getString());
+        "Current swap slot: %d Item: %s",
+        inventorySlot, currentChestSlot.getHoverName().getString());
 
     if (currentChestSlot.getItem() == Items.ELYTRA) {
       lastWornElytra = currentChestSlot.copy();
@@ -377,9 +378,9 @@ public class ElytraSwap {
       logInfoFormat(
           "Converting inventory slot %d to container slot %d", inventorySlot, containerSlot);
 
-      manager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, player);
-      manager.clickSlot(0, CHESTPLATE_ARMOR_SLOT, 0, SlotActionType.PICKUP, player);
-      manager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, player);
+      manager.handleContainerInput(0, containerSlot, 0, ContainerInput.PICKUP, player);
+      manager.handleContainerInput(0, CHESTPLATE_ARMOR_SLOT, 0, ContainerInput.PICKUP, player);
+      manager.handleContainerInput(0, containerSlot, 0, ContainerInput.PICKUP, player);
 
       logInfo("Swapped items in inventory");
     } catch (NullPointerException exception) {
@@ -399,17 +400,17 @@ public class ElytraSwap {
     return inventorySlot;
   }
 
-  private static void activateElytra(MinecraftClient client) {
+  private static void activateElytra(Minecraft client) {
     Optional.ofNullable(client.player)
         .ifPresent(
             player -> {
               try {
-                if (client.getNetworkHandler() != null) {
+                if (client.getConnection() != null) {
                   client
-                      .getNetworkHandler()
-                      .sendPacket(
-                          new ClientCommandC2SPacket(
-                              player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
+                      .getConnection()
+                      .send(
+                          new ServerboundPlayerCommandPacket(
+                              player, ServerboundPlayerCommandPacket.Action.START_FALL_FLYING));
                 }
               } catch (NullPointerException exception) {
                 logError("Error activating Elytra", exception);
@@ -443,7 +444,7 @@ public class ElytraSwap {
     logInfo("Air ticks: " + airState.getAirTicks());
     logInfo("Last jump tick: " + lastJumpTick);
     logInfo("Current tick: " + state.currentTick);
-    logInfo("Vertical velocity: " + state.player.getVelocity().y);
+    logInfo("Vertical velocity: " + state.player.getDeltaMovement().y);
     logInfo("Fall distance: " + state.player.fallDistance);
     logInfo("Has been in air: " + state.hasBeenInAir);
     logInfo("Is moving down: " + state.isMovingDown);
@@ -458,10 +459,10 @@ public class ElytraSwap {
     logInfo("isRunning: " + state.isRunning);
     logInfo("prevTickJumpKeyPressed: " + prevTickJumpKeyPressed);
     logInfo("ticksSinceGrounded: " + airState.getTicksSinceGrounded());
-    logInfo("player.getVelocity().y: " + state.player.getVelocity().y);
+    logInfo("player.getDeltaMovement().y: " + state.player.getDeltaMovement().y);
     logInfo(
         "Current chest item: "
-            + state.player.getEquippedStack(EquipmentSlot.CHEST).getItem().toString());
+            + state.player.getItemBySlot(EquipmentSlot.CHEST).getItem().toString());
   }
 
   private static void logMidAirActivationAttempt(PlayerState state) {
@@ -475,8 +476,8 @@ public class ElytraSwap {
   }
 
   private static class PlayerState {
-    final ClientPlayerEntity player;
-    final MinecraftClient client;
+    final LocalPlayer player;
+    final Minecraft client;
     final long currentTick;
     final boolean wasJumpKeyPressed;
     final boolean wasRecentlyAirborne;
@@ -494,7 +495,7 @@ public class ElytraSwap {
     final boolean isMovingUp;
     final boolean isMovingUpFast;
 
-    PlayerState(MinecraftClient client) {
+    PlayerState(Minecraft client) {
       this.client = client;
       this.player = client.player;
 
@@ -502,7 +503,7 @@ public class ElytraSwap {
         throw new IllegalStateException("Player is null");
       }
 
-      if (client.world == null) {
+      if (client.level == null) {
         throw new IllegalStateException("World is null");
       }
 
@@ -511,19 +512,18 @@ public class ElytraSwap {
       final double minFallDistance =
           ElytraAssistant.CONFIG.sensitivityTweaks.minFallDistance / 1000.0;
 
-      final net.minecraft.util.math.Vec3d velocity = player.getVelocity();
+      final Vec3 velocity = player.getDeltaMovement();
       final double verticalVel = velocity.y;
-      final double horizontalLength = velocity.horizontalLength();
+      final double horizontalLength = velocity.horizontalDistance();
 
-      this.currentTick = client.world.getTime();
-      this.wasJumpKeyPressed = client.options.jumpKey.isPressed();
+      this.currentTick = client.level.getGameTime();
+      this.wasJumpKeyPressed = client.options.keyJump.isDown();
       this.wasRecentlyAirborne = airState.wasRecentlyAirborne();
-      this.isOnGround = player.isOnGround();
-      this.isInFluid =
-          player.isInFluid() || player.isTouchingWater() || player.isSubmergedInWater();
-      this.isSubmergedInWater = player.isSubmergedInWater();
+      this.isOnGround = player.onGround();
+      this.isInFluid = player.isInWater() || player.isUnderWater();
+      this.isSubmergedInWater = player.isUnderWater();
       this.isSwimming = player.isSwimming();
-      this.isClimbing = player.isClimbing();
+      this.isClimbing = player.onClimbable();
       this.isRunning = player.isSprinting() && horizontalLength > RUNNING_VELOCITY_THRESHOLD;
       this.hasBeenInAir = airState.hasBeenInAir();
       this.isInMidAirBalance = Math.abs(verticalVel) <= verticalVelocityThreshold;
@@ -531,7 +531,7 @@ public class ElytraSwap {
       this.isMovingUp = verticalVel > verticalVelocityThreshold;
       this.isMovingUpFast = verticalVel > Math.min(verticalVelocityThreshold * 5, 1.0);
       this.hasFallenEnough = player.fallDistance > minFallDistance;
-      this.isGliding = player.isGliding();
+      this.isGliding = player.isFallFlying();
     }
   }
 
@@ -593,12 +593,12 @@ public class ElytraSwap {
     private long lastUpdateTick = -1;
     private PlayerState cachedState;
 
-    public PlayerState get(MinecraftClient client) {
-      if (client.world == null || client.player == null) {
+    public PlayerState get(Minecraft client) {
+      if (client.level == null || client.player == null) {
         return null;
       }
 
-      long currentTick = client.world.getTime();
+      long currentTick = client.level.getGameTime();
       if (lastUpdateTick != currentTick || cachedState == null) {
         try {
           cachedState = new PlayerState(client);

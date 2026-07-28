@@ -1,17 +1,8 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.fabricmc.net/' }
-        mavenCentral()
-        gradlePluginPortal()
-    }
-    dependencies {
-        classpath 'net.fabricmc:fabric-loom:1.13.6'
-        classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
-    }
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+    id 'maven-publish'
+    id 'com.diffplug.spotless' version '8.8.0'
 }
-apply plugin: 'fabric-loom'
-apply plugin: 'maven-publish'
-apply plugin: 'com.diffplug.spotless'
 
 spotless {
     java {
@@ -25,7 +16,9 @@ spotless {
 
 version = project.mod_version
 group = project.maven_group
-archivesBaseName = project.archives_base_name
+base {
+    archivesName = project.archives_base_name
+}
 
 repositories {
     mavenCentral()
@@ -46,45 +39,75 @@ loom {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-    modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-    modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+    implementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
 }
 
 processResources {
     inputs.property "version", project.version
+    inputs.property "minecraft_compatibility", project.minecraft_compatibility
+    inputs.property "cloth_config_version", project.cloth_config_version
+    inputs.property "modmenu_version", project.modmenu_version
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
+        expand(
+                "version": project.version,
+                "minecraft_compatibility": project.minecraft_compatibility,
+                "cloth_config_version": project.cloth_config_version,
+                "modmenu_version": project.modmenu_version
+        )
     }
 }
 
+tasks.register("verifyModMetadata") {
+    dependsOn processResources
+    doLast {
+        def metadata = file("${layout.buildDirectory.get()}/resources/main/fabric.mod.json").text
+        def expectedEntries = [
+                "\"minecraft\": \"${project.minecraft_compatibility}\"",
+                "\"cloth-config\": \">=${project.cloth_config_version}\"",
+                "\"modmenu\": \">=${project.modmenu_version}\""
+        ]
+
+        expectedEntries.each { entry ->
+            if (!metadata.contains(entry)) {
+                throw new GradleException("Generated fabric.mod.json is missing ${entry}")
+            }
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn tasks.named("verifyModMetadata")
+}
+
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
+    it.options.release = 25
 }
 
 def getArchiveName = { extension ->
-    "${archivesBaseName}-${project.modding_api}-${project.mod_version}-mc${project.minecraft_version}${extension ? '.' + extension : ''}"
+    "${project.archives_base_name}-${project.modding_api}-${project.mod_version}-mc${project.minecraft_version}${extension ? '.' + extension : ''}"
 }
 
 jar {
     from("LICENSE") {
-        rename { "${it}_${archivesBaseName}" }
+        rename { "${it}_${project.archives_base_name}" }
     }
     archiveFileName = getArchiveName("jar")
 }
 
-tasks.named("remapJar") { archiveFileName = getArchiveName("jar") }
-tasks.named("remapSourcesJar") { archiveFileName = getArchiveName("sources.jar") }
+tasks.named("jar") { archiveFileName = getArchiveName("jar") }
 
 java {
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
+
+tasks.named("sourcesJar") { archiveFileName = getArchiveName("sources.jar") }
 
 def createArchive = { TaskContainer tasks, String type, String extension ->
     tasks.create("create${type.capitalize()}", type == "tar" ? Tar : Zip) {

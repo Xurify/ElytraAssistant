@@ -2,16 +2,16 @@ package com.xurify.elytraassistant;
 
 import java.util.List;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 // import net.minecraft.item.ElytraItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 
 public class ElytraInfoTooltip {
 
@@ -26,27 +26,28 @@ public class ElytraInfoTooltip {
   }
 
   private static void addElytraTooltip(
-      ItemStack itemStack, List<Text> tooltipList, Item.TooltipContext context) {
+      ItemStack itemStack, List<Component> tooltipList, Item.TooltipContext context) {
     int maxDurability = itemStack.getMaxDamage();
-    int currentDurability = maxDurability - itemStack.getDamage();
+    int currentDurability = maxDurability - itemStack.getDamageValue();
     float durabilityPercentage = (float) currentDurability / maxDurability;
 
     var unbreakingEnchantment =
         context
-            .getRegistryLookup()
-            .getOrThrow(RegistryKeys.ENCHANTMENT)
+            .registries()
+            .lookupOrThrow(Registries.ENCHANTMENT)
             .getOrThrow(Enchantments.UNBREAKING);
-    int unbreakingLevel = EnchantmentHelper.getLevel(unbreakingEnchantment, itemStack);
+    int unbreakingLevel =
+        EnchantmentHelper.getItemEnchantmentLevel(unbreakingEnchantment, itemStack);
 
     float durabilityMultiplier = calculateUnbreakingMultiplier(unbreakingLevel);
     int estimatedSeconds = Math.round(currentDurability * durabilityMultiplier);
     String timeString = formatTime(estimatedSeconds);
 
-    Formatting timeColor = getColorForFlightTime(durabilityPercentage, unbreakingLevel);
-    MutableText flightTimeText = Text.literal(timeString).formatted(timeColor);
+    ChatFormatting timeColor = getColorForFlightTime(durabilityPercentage, unbreakingLevel);
+    MutableComponent flightTimeText = Component.literal(timeString).withStyle(timeColor);
     tooltipList.add(
-        Text.translatable("elytraassistant.tooltip.flightTime", flightTimeText)
-            .formatted(Formatting.GRAY));
+        Component.translatable("elytraassistant.tooltip.flightTime", flightTimeText)
+            .withStyle(ChatFormatting.GRAY));
   }
 
   private static float calculateUnbreakingMultiplier(int level) {
@@ -66,13 +67,14 @@ public class ElytraInfoTooltip {
     }
   }
 
-  private static Formatting getColorForFlightTime(float durabilityPercentage, int unbreakingLevel) {
+  private static ChatFormatting getColorForFlightTime(
+      float durabilityPercentage, int unbreakingLevel) {
     float effectiveDurability = durabilityPercentage * (1 + unbreakingLevel * 0.5f);
 
-    if (effectiveDurability > 0.75f) return Formatting.GREEN;
-    if (effectiveDurability > 0.6f) return Formatting.YELLOW;
-    if (effectiveDurability > 0.4f) return Formatting.GOLD;
-    if (effectiveDurability > 0.25f) return Formatting.RED;
-    return Formatting.DARK_RED;
+    if (effectiveDurability > 0.75f) return ChatFormatting.GREEN;
+    if (effectiveDurability > 0.6f) return ChatFormatting.YELLOW;
+    if (effectiveDurability > 0.4f) return ChatFormatting.GOLD;
+    if (effectiveDurability > 0.25f) return ChatFormatting.RED;
+    return ChatFormatting.DARK_RED;
   }
 }

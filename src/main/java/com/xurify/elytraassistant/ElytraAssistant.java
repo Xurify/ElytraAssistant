@@ -1,6 +1,7 @@
 package com.xurify.elytraassistant;
 
 import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
@@ -15,6 +16,10 @@ public class ElytraAssistant implements ModInitializer {
   public void onInitialize() {
     LOGGER.info("Initializing ElytraAssistant");
     AutoConfig.register(ModConfig.class, GsonConfigSerializer::new);
-    CONFIG = AutoConfig.getConfigHolder(ModConfig.class).getConfig();
+    ConfigHolder<ModConfig> configHolder = AutoConfig.getConfigHolder(ModConfig.class);
+    CONFIG = configHolder.getConfig();
+    if (CONFIG.fireworkRockets.migrateLegacyRestriction()) {
+      configHolder.save();
+    }
   }
 }

@@ -1,20 +1,20 @@
 package com.xurify.elytraassistant;
 
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.util.Identifier;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class ModKeybindings {
-  private static final KeyBinding.Category ELYTRASSISTANT_CATEGORY =
-      KeyBinding.Category.create(Identifier.of("elytraassistant", "general"));
+  private static final KeyMapping.Category ELYTRASSISTANT_CATEGORY =
+      KeyMapping.Category.register(Identifier.fromNamespaceAndPath("elytraassistant", "general"));
 
-  public static KeyBinding elytraToggleKeyBinding;
+  public static KeyMapping elytraToggleKeyBinding;
 
   public static void register() {
     elytraToggleKeyBinding =
-        KeyBindingHelper.registerKeyBinding(
-            new KeyBinding(
+        KeyMappingHelper.registerKeyMapping(
+            new KeyMapping(
                 "key.elytraassistant.elytra_toggle",
                 GLFW.GLFW_KEY_GRAVE_ACCENT,
                 ELYTRASSISTANT_CATEGORY));

@@ -27,9 +27,48 @@ public class ModConfig implements ConfigData {
   }
 
   public static class FireworkRockets {
-    @ConfigEntry.Gui.Tooltip public boolean disableDecorativeExplosionsWhileWearingElytra = false;
+    @ConfigEntry.Gui.Tooltip
+    @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+    public RocketRestriction restriction = RocketRestriction.OFF;
 
-    @ConfigEntry.Gui.Tooltip public boolean disableDecorativeExplosionsCompletely = false;
+    @ConfigEntry.Gui.Excluded public boolean rocketRestrictionMigrated = false;
+
+    @ConfigEntry.Gui.Excluded public boolean disableDecorativeExplosionsWhileWearingElytra = false;
+
+    @ConfigEntry.Gui.Excluded public boolean disableDecorativeExplosionsCompletely = false;
+
+    public boolean migrateLegacyRestriction() {
+      if (rocketRestrictionMigrated) {
+        return false;
+      }
+
+      if (disableDecorativeExplosionsCompletely) {
+        restriction = RocketRestriction.FLIGHT_ONLY;
+      } else if (disableDecorativeExplosionsWhileWearingElytra) {
+        restriction = RocketRestriction.WHILE_WEARING_ELYTRA;
+      }
+
+      rocketRestrictionMigrated = true;
+      return true;
+    }
+  }
+
+  public enum RocketRestriction {
+    OFF("text.autoconfig.elytraassistant.option.fireworkRockets.restriction.OFF"),
+    WHILE_WEARING_ELYTRA(
+        "text.autoconfig.elytraassistant.option.fireworkRockets.restriction.WHILE_WEARING_ELYTRA"),
+    FLIGHT_ONLY("text.autoconfig.elytraassistant.option.fireworkRockets.restriction.FLIGHT_ONLY");
+
+    private final String translationKey;
+
+    RocketRestriction(String translationKey) {
+      this.translationKey = translationKey;
+    }
+
+    @Override
+    public String toString() {
+      return translationKey;
+    }
   }
 
   public static class DisplaySettings {

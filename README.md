@@ -16,7 +16,8 @@ your resources with smart, seamless controls.
     - Takes into account the current durability and Unbreaking enchantment level for accurate estimates.
 
 3. **Firework Rocket Waste Prevention**
-    - Prevents accidental use of firework rockets when not wearing an Elytra.
+    - Configurable restriction modes: Off, Elytra equipped, or Flight only.
+    - Blocks restricted rockets in air, on blocks, and on entities.
     - Helps conserve resources and avoid wasting fireworks unintentionally.
 
 ## Installation
@@ -32,7 +33,11 @@ Once installed, the mod works automatically:
 
 - The Elytra/Chestplate swap occurs automatically based on your actions.
 - Hover over an Elytra in your inventory to see the estimated flight time tooltip.
-- The mod will prevent firework rocket usage when you're not wearing an Elytra.
+- Configure **Rocket restriction** in Mod Menu:
+  - **Off** allows rockets normally.
+  - **Elytra equipped** blocks rockets while an Elytra is in the chest slot, unless gliding.
+  - **Flight only** blocks rockets unless gliding.
+- Restricted rockets are blocked regardless of whether the target is air, a block, or an entity.
 - Includes a key bind for manual swapping (default key: ~).
 
 ## Configuration
@@ -41,12 +46,15 @@ Once installed, the mod works automatically:
 
 ## Development
 
+- **Java:** Java 25 is required for Minecraft 26.x.
 - **Build:** `./gradlew build` (or `gradlew.bat build` on Windows)
 - **Formatting:** The project uses [Spotless](https://github.com/diffplug/spotless) for Java and JSON. If the build fails on `spotlessJsonCheck` or `spotlessJavaCheck`, run `./gradlew spotlessApply` and try again.
 
 ## Compatibility
 
 Elytra Assistant is a client-side mod and should be compatible with most Minecraft servers, including vanilla servers. However, always check server rules regarding the use of client-side mods.
+
+Minecraft 26.1, 26.1.1, and 26.1.2 use one tested `26.1.x` compatibility build. Minecraft 26.2 uses its own build.
 
 ## Support
 

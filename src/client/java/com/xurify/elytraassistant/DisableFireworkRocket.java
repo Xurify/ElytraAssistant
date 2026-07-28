@@ -1,202 +1,57 @@
 package com.xurify.elytraassistant;
 
-import java.util.HashSet;
-import java.util.Set;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.block.AbstractFurnaceBlock;
-import net.minecraft.block.AnvilBlock;
-import net.minecraft.block.BarrelBlock;
-import net.minecraft.block.BeaconBlock;
-import net.minecraft.block.BedBlock;
-import net.minecraft.block.BellBlock;
-import net.minecraft.block.BlastFurnaceBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.BrewingStandBlock;
-import net.minecraft.block.ButtonBlock;
-import net.minecraft.block.CakeBlock;
-import net.minecraft.block.CandleBlock;
-import net.minecraft.block.CandleCakeBlock;
-import net.minecraft.block.CartographyTableBlock;
-import net.minecraft.block.CaveVinesBodyBlock;
-import net.minecraft.block.CaveVinesHeadBlock;
-import net.minecraft.block.ChestBlock;
-import net.minecraft.block.ChiseledBookshelfBlock;
-import net.minecraft.block.CommandBlock;
-import net.minecraft.block.ComparatorBlock;
-import net.minecraft.block.ComposterBlock;
-import net.minecraft.block.CrafterBlock;
-import net.minecraft.block.CraftingTableBlock;
-import net.minecraft.block.DaylightDetectorBlock;
-import net.minecraft.block.DispenserBlock;
-import net.minecraft.block.DoorBlock;
-import net.minecraft.block.DragonEggBlock;
-import net.minecraft.block.DropperBlock;
-import net.minecraft.block.EnchantingTableBlock;
-import net.minecraft.block.EnderChestBlock;
-import net.minecraft.block.FenceGateBlock;
-import net.minecraft.block.FlowerPotBlock;
-import net.minecraft.block.FurnaceBlock;
-import net.minecraft.block.GrindstoneBlock;
-import net.minecraft.block.HangingSignBlock;
-import net.minecraft.block.HopperBlock;
-import net.minecraft.block.JigsawBlock;
-import net.minecraft.block.JukeboxBlock;
-import net.minecraft.block.LecternBlock;
-import net.minecraft.block.LeverBlock;
-import net.minecraft.block.LoomBlock;
-import net.minecraft.block.NoteBlock;
-import net.minecraft.block.RepeaterBlock;
-import net.minecraft.block.ShelfBlock;
-import net.minecraft.block.ShulkerBoxBlock;
-import net.minecraft.block.SignBlock;
-import net.minecraft.block.SmithingTableBlock;
-import net.minecraft.block.SmokerBlock;
-import net.minecraft.block.StonecutterBlock;
-import net.minecraft.block.StructureBlock;
-import net.minecraft.block.SweetBerryBushBlock;
-import net.minecraft.block.TrapdoorBlock;
-import net.minecraft.block.WallHangingSignBlock;
-import net.minecraft.block.WallSignBlock;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.HungerManager;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.ActionResult;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+import net.fabricmc.fabric.api.event.player.UseItemCallback;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class DisableFireworkRocket {
-  private static final Set<Class<? extends Block>> INTERACTIVE_BLOCKS = new HashSet<>();
-
-  static {
-    // Doors, gates, trapdoors - hand interaction (open/close)
-    INTERACTIVE_BLOCKS.add(DoorBlock.class);
-    INTERACTIVE_BLOCKS.add(TrapdoorBlock.class);
-    INTERACTIVE_BLOCKS.add(FenceGateBlock.class);
-
-    // Storage blocks - hand interaction (open GUI)
-    INTERACTIVE_BLOCKS.add(ChestBlock.class);
-    INTERACTIVE_BLOCKS.add(EnderChestBlock.class);
-    INTERACTIVE_BLOCKS.add(ShulkerBoxBlock.class);
-    INTERACTIVE_BLOCKS.add(BarrelBlock.class);
-    INTERACTIVE_BLOCKS.add(
-        ShelfBlock.class); // 1.21.9+ shelf (item display, right-click to interact)
-
-    // Redstone components - hand interaction
-    INTERACTIVE_BLOCKS.add(ButtonBlock.class);
-    INTERACTIVE_BLOCKS.add(LeverBlock.class);
-    INTERACTIVE_BLOCKS.add(RepeaterBlock.class);
-    INTERACTIVE_BLOCKS.add(ComparatorBlock.class);
-    INTERACTIVE_BLOCKS.add(DaylightDetectorBlock.class);
-
-    // Workstation blocks - hand interaction (open GUI)
-    INTERACTIVE_BLOCKS.add(CraftingTableBlock.class);
-    INTERACTIVE_BLOCKS.add(CrafterBlock.class); // 1.21+ auto-crafter, right-click opens GUI
-    INTERACTIVE_BLOCKS.add(AnvilBlock.class);
-    INTERACTIVE_BLOCKS.add(AbstractFurnaceBlock.class);
-    INTERACTIVE_BLOCKS.add(FurnaceBlock.class);
-    INTERACTIVE_BLOCKS.add(BlastFurnaceBlock.class);
-    INTERACTIVE_BLOCKS.add(SmokerBlock.class);
-    INTERACTIVE_BLOCKS.add(BrewingStandBlock.class);
-    INTERACTIVE_BLOCKS.add(EnchantingTableBlock.class);
-    INTERACTIVE_BLOCKS.add(LoomBlock.class);
-    INTERACTIVE_BLOCKS.add(CartographyTableBlock.class);
-    INTERACTIVE_BLOCKS.add(GrindstoneBlock.class);
-    INTERACTIVE_BLOCKS.add(StonecutterBlock.class);
-    INTERACTIVE_BLOCKS.add(SmithingTableBlock.class);
-    // Fletching table: in 1.21.9 Yarn there is no FletchingTableBlock class (Blocks.FLETCHING_TABLE
-    // still exists); handled by identity in isInteractiveBlock
-
-    // Special blocks - hand interaction
-    INTERACTIVE_BLOCKS.add(BeaconBlock.class);
-    INTERACTIVE_BLOCKS.add(BedBlock.class);
-    INTERACTIVE_BLOCKS.add(NoteBlock.class);
-    INTERACTIVE_BLOCKS.add(ComposterBlock.class);
-    // INTERACTIVE_BLOCKS.add(CakeBlock.class);
-    INTERACTIVE_BLOCKS.add(BellBlock.class);
-    INTERACTIVE_BLOCKS.add(LecternBlock.class);
-    INTERACTIVE_BLOCKS.add(DragonEggBlock.class);
-
-    // Berry blocks - hand interaction (harvest)
-    INTERACTIVE_BLOCKS.add(SweetBerryBushBlock.class);
-    INTERACTIVE_BLOCKS.add(CaveVinesBodyBlock.class);
-    INTERACTIVE_BLOCKS.add(CaveVinesHeadBlock.class);
-
-    // Candles - hand interaction (light/extinguish)
-    INTERACTIVE_BLOCKS.add(CandleBlock.class);
-    INTERACTIVE_BLOCKS.add(CandleCakeBlock.class);
-
-    // Signs - hand interaction (edit text)
-    INTERACTIVE_BLOCKS.add(SignBlock.class);
-    INTERACTIVE_BLOCKS.add(WallSignBlock.class);
-    INTERACTIVE_BLOCKS.add(HangingSignBlock.class);
-    INTERACTIVE_BLOCKS.add(WallHangingSignBlock.class);
-
-    // Redstone machines - hand interaction (open GUI)
-    INTERACTIVE_BLOCKS.add(HopperBlock.class);
-    INTERACTIVE_BLOCKS.add(DispenserBlock.class);
-    INTERACTIVE_BLOCKS.add(DropperBlock.class);
-
-    // Blocks - insert/take or take/place on right-click (empty hand works)
-    INTERACTIVE_BLOCKS.add(JukeboxBlock.class);
-    INTERACTIVE_BLOCKS.add(ChiseledBookshelfBlock.class);
-    INTERACTIVE_BLOCKS.add(FlowerPotBlock.class);
-
-    // Creative/command blocks - hand interaction (open GUI)
-    INTERACTIVE_BLOCKS.add(StructureBlock.class);
-    INTERACTIVE_BLOCKS.add(JigsawBlock.class);
-    INTERACTIVE_BLOCKS.add(CommandBlock.class);
-  }
-
   public static void init() {
+    UseItemCallback.EVENT.register(
+        (player, world, hand) ->
+            shouldBlockFireworkUse(player, player.getItemInHand(hand))
+                ? InteractionResult.FAIL
+                : InteractionResult.PASS);
+
     UseBlockCallback.EVENT.register(
         (player, world, hand, hitResult) -> {
-          ItemStack heldItem = player.getStackInHand(hand);
-          boolean isWearingElytra =
-              player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA;
-          boolean isHoldingFireworkRocket = heldItem.getItem() == Items.FIREWORK_ROCKET;
-          boolean isDecorativeExplosionsWhileWearingElytraDisabled =
-              ElytraAssistant.CONFIG.fireworkRockets.disableDecorativeExplosionsWhileWearingElytra;
-          boolean isDecorativeExplosionsCompletelyDisabled =
-              ElytraAssistant.CONFIG.fireworkRockets.disableDecorativeExplosionsCompletely;
+          ItemStack heldItem = player.getItemInHand(hand);
 
-          if (!isHoldingFireworkRocket) {
-            return ActionResult.PASS;
+          if (heldItem.getItem() != Items.FIREWORK_ROCKET) {
+            return InteractionResult.PASS;
           }
 
-          Block block = world.getBlockState(hitResult.getBlockPos()).getBlock();
-
-          if (isInteractiveBlock(block)) {
-            return ActionResult.PASS;
-          }
-
-          if ((isDecorativeExplosionsWhileWearingElytraDisabled
-                  || isDecorativeExplosionsCompletelyDisabled)
-              && block instanceof CakeBlock) {
-            HungerManager hungerManager = player.getHungerManager();
-            if (hungerManager.isNotFull()) {
-              return ActionResult.PASS;
-            } else {
-              return ActionResult.FAIL;
-            }
-          }
-
-          if (isDecorativeExplosionsWhileWearingElytraDisabled && isWearingElytra) {
-            return ActionResult.FAIL;
-          }
-
-          if (isDecorativeExplosionsCompletelyDisabled) {
-            return ActionResult.FAIL;
-          }
-
-          return ActionResult.PASS;
+          return shouldBlockFireworkUse(player, heldItem)
+              ? InteractionResult.FAIL
+              : InteractionResult.PASS;
         });
+
+    UseEntityCallback.EVENT.register(
+        (player, world, hand, entity, hitResult) ->
+            shouldBlockFireworkUse(player, player.getItemInHand(hand))
+                ? InteractionResult.FAIL
+                : InteractionResult.PASS);
   }
 
-  private static boolean isInteractiveBlock(Block block) {
-    // Fletching table: no FletchingTableBlock class in 1.21.9 Yarn; check by block identity
-    if (block == Blocks.FLETCHING_TABLE) {
-      return true;
+  private static boolean shouldBlockFireworkUse(
+      net.minecraft.world.entity.player.Player player, ItemStack heldItem) {
+    return heldItem.getItem() == Items.FIREWORK_ROCKET && shouldRestrictFireworkUse(player);
+  }
+
+  private static boolean shouldRestrictFireworkUse(
+      net.minecraft.world.entity.player.Player player) {
+    if (player.isFallFlying()) {
+      return false;
     }
-    return INTERACTIVE_BLOCKS.stream().anyMatch(blockClass -> blockClass.isInstance(block));
+
+    return switch (ElytraAssistant.CONFIG.fireworkRockets.restriction) {
+      case OFF -> false;
+      case WHILE_WEARING_ELYTRA ->
+          player.getItemBySlot(EquipmentSlot.CHEST).getItem() == Items.ELYTRA;
+      case FLIGHT_ONLY -> true;
+    };
   }
 }

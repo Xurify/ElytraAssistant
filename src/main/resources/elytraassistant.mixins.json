@@ -1,7 +1,7 @@
 {
-  "mixins": ["ExampleMixin"],
+  "mixins": [],
   "package": "com.xurify.elytraassistant.mixin",
   "injectors": {"defaultRequire": 1},
-  "compatibilityLevel": "JAVA_21",
-  "required": true
+  "compatibilityLevel": "JAVA_25",
+  "required": false
 }
