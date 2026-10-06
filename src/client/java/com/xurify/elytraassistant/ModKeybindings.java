@@ -1,9 +1,9 @@
 package com.xurify.elytraassistant;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
 
 public class ModKeybindings {
   private static final KeyMapping.Category ELYTRASSISTANT_CATEGORY =
@@ -16,7 +16,8 @@ public class ModKeybindings {
         KeyMappingHelper.registerKeyMapping(
             new KeyMapping(
                 "key.elytraassistant.elytra_toggle",
-                GLFW.GLFW_KEY_GRAVE_ACCENT,
+                InputConstants.Type.KEYBOARD,
+                InputConstants.KEY_GRAVE,
                 ELYTRASSISTANT_CATEGORY));
     ElytraAssistant.LOGGER.info("Elytra toggle key binding registered");
   }

@@ -4,7 +4,7 @@
     "minecraft": "${minecraft_compatibility}",
     "fabric-api": "*",
     "java": ">=25",
-    "fabricloader": ">=0.19.3",
+    "fabricloader": ">=0.19.5",
     "cloth-config": ">=${cloth_config_version}"
   },
   "icon": "assets/elytraassistant/icon.png",
